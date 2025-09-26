@@ -1,4 +1,4 @@
-import { useState } from "react";
+  import { useState } from "react";
 import { motion } from "framer-motion";
 import { Search, Filter, Grid, List } from "lucide-react";
 import { ProductCard } from "@/components/products/ProductCard";
