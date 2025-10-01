@@ -1,80 +1,61 @@
 import Product from "../models/product.model.js";
+import ErrorHandler from "../utils/error.handler.js";
+import catchAsyncError from "../middlewares/catchAysncerror.middleware.js";
 
 //create product-admin
 
-export const createProduct = async (req, res, next) => {
+export const createProduct = catchAsyncError(async (req, res, next) => {
   const newProduct = await Product.create(req.body);
-  res.status(201).json({  
+  res.status(201).json({
     success: true,
     newProduct,
   });
   console.log("Product created successfully");
-};
+});
 
 // get all products
-export const getAllProducts = async (req, res) => {
-  try {
-    const products = await Product.find();
+export const getAllProducts = catchAsyncError(async (req, res) => {
+  const products = await Product.find();
 
-    res.status(200).json({
-      success: true,
-      products,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-};
+  res.status(200).json({
+    success: true,
+    products,
+  });
+});
 
 // update product - admin
 
-export const updateProduct = async (req, res, next) => {
-  try {
-    let product = await Product.findById(req.params.id);
+export const updateProduct = catchAsyncError(async (req, res, next) => {
+  let product = await Product.findById(req.params.id);
 
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
-    }
-
-    product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-      useFindAndModify: false,
-    });
-
-    res.status(200).json({
-      success: true,
-      product,
-    });
-
-    console.log("Product updated successfully");
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+  if (!product) {
+    return next(new ErrorHandler("Product not found", 404));
   }
-};
+
+  product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+    useFindAndModify: false,
+  });
+
+  res.status(200).json({
+    success: true,
+    product,
+  });
+
+  console.log("Product updated successfully");
+});
 
 export const deleteProduct = async (req, res, next) => {
   try {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      return next(new ErrorHandler("Product not found", 404));
     }
 
     await product.deleteOne();
 
-    
     res.status(200).json({
       success: true,
       message: "Product deleted successfully",
@@ -93,10 +74,7 @@ export const getProductDetails = async (req, res, next) => {
     const product = await Product.findById(req.params.id);
 
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      return next(new ErrorHandler("Product not found", 404));
     }
 
     res.status(200).json({
