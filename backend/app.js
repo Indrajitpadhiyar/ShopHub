@@ -4,6 +4,9 @@ import cors from "cors";
 import connectDB from "./src/config/db.js";
 import product from "./src/routes/product.routes.js";
 import errorMiddlewares from "./src/middlewares/error.middlewares.js";
+import userRouter from "./src/routes/user.routes.js";
+
+//connect to database
 
 connectDB();
 
@@ -12,7 +15,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
+
+
+//routes
 app.use("/api/v1", product);
+app.use("/api/v1", userRouter);
 
 // error middleware
 app.use(errorMiddlewares);

@@ -1,62 +1,63 @@
 import mongoose from "mongoose";
+import validator from "validator";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const userSchema = new mongoose.Schema(
-  {
-    name: {
+const userSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: [true, "Please enter your name"],
+    maxLength: [30, "Your name cannot exceed 30 characters"],
+    minLength: [4, "Your name must be at least 4 characters long"],
+  },
+  email: {
+    type: String,
+    required: [true, "Please enter your email"],
+    unique: true,
+    validate: [validator.isEmail, "Please enter a valid email address"],
+  },
+  password: {
+    type: String,
+    required: [true, "Please enter your password"],
+    minLength: [3, "Your password must be at least 3 characters long"],
+    select: false, // Do not return password field by default
+  },
+  avatar: {
+    public_id: {
       type: String,
       required: true,
     },
-    email: {
+    url: {
       type: String,
       required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-    },
-    role: {
-      type: String,
-      enum: ["user", "admin"],
-      default: "user",
-    },
-    phone: {
-      type: Number,
-      default: null,
-    },
-    address: {
-      type: String,
-      default: null,
-    },
-    wishlist: [{ type: mongoose.Schema.Types.ObjectId, ref: "Product" }],
-    isAdmin: {
-      type: Boolean,
-      default: false,
     },
   },
-  { timestamps: true, minimize: false }
-);
 
-userSchema.static.hashPassword = async function (password) {
-  return await bcrypt.hash(password, 10);
-};
+  role: {
+    type: String,
+    default: "user",
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
+});
 
-userSchema.method.isPasswordMatch = async function (password) {
-  return await bcrypt.compare(password, this.password);
-};
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) {
+    return next();
+  }
+  this.password = await bcrypt.hash(this.password, 10);
+});
 
-userSchema.method.generateAuthToken = function () {
-  const token = jwt.sign(
-    { _id: this._id, isAdmin: this.isAdmin },
-    process.env.JWT_SECRET,
-    {
-      expiresIn: "7d",
-    }
-  );
-  return token;
-};
-const User = mongoose.model("User", userSchema);
+userSchema.methods.getJWTToken = function () {
+  return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE,
+  });
+}
 
+// Compare user password
+userSchema.methods.comparePassword = async function(enteredPassword) {
+    return await bcrypt.compare(enteredPassword, this.password);
+}
+
+export const User = mongoose.model("User", userSchema);
 export default User;
