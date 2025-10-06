@@ -1,8 +1,10 @@
+import crypto from "crypto";
 import User from "../models/user.model.js";
 import ErrorHandler from "../utils/error.handler.js";
 import catchAsyncError from "../middlewares/catchAysncerror.middleware.js";
 import sendToken from "../utils/JWTtoken.js";
 import sendEmail from "../utils/sendEmail.js";
+// import { send } from "process";
 
 // Register a user
 
@@ -86,4 +88,35 @@ export const forgotPassword = catchAsyncError(async (req, res, next) => {
 
     return next(new ErrorHandler(error.message, 500));
   }
+});
+
+export const resetPassword = catchAsyncError(async (req, res, next) => {
+  //created token hash
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.token)
+    .digest("hex");
+
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() },
+  });
+
+  if (!user) {
+    return next(
+      new ErrorHandler("resate password token is invalid has been expired", 401)
+    );
+  }
+
+  if (req.body.password !== req.body.confirmPassword) {
+    return next(new ErrorHandler("Password does not match", 400));
+  }
+
+  user.password = req.body.password;
+
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
+
+  await user.save();
+  sendToken(user, 200, res);
 });
