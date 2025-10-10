@@ -154,7 +154,7 @@ export const getProductReviews = catchAsyncError(async (req, res, next) => {
 });
 
 //delete review
-export const deleteReview = catchAsyncError(async (req, res, next) => {
+export const deleteReview = catchAsyncError(async (req, res, next) => { 
   const product = await Product.findById(req.query.id);
 
   if (!product) {
@@ -170,7 +170,7 @@ export const deleteReview = catchAsyncError(async (req, res, next) => {
     avg += rev.rating;
   });
 
-  const ratings = avg / product.reviews.length;
+  const ratings = avg / reviews.length;
 
   const numOfReviews = reviews.length;
 
