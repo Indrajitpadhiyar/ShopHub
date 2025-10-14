@@ -3,38 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import Header from '../layouts/Header';
 import Footer from '../layouts/Footer';
-import Card from '../layouts/Card';
+// import Card from '../layouts/Card';
+import Product from './Product';
 
-// Dummy product data (you can replace this with your actual data)
-const dummyProducts = [
-  {
-    id: 1,
-    name: 'Fast Charger 65W',
-    price: 29.99,
-    image: 'https://via.placeholder.com/300x300?text=Fast+Charger+65W',
-    rating: 4.5,
-  },
-  {
-    id: 2,
-    name: 'USB-C Cable 2m',
-    price: 9.99,
-    image: 'https://via.placeholder.com/300x300?text=USB-C+Cable',
-    rating: 4.7,
-  },
-  {
-    id: 3,
-    name: 'Power Bank 10,000mAh',
-    price: 39.99,
-    image: 'https://via.placeholder.com/300x300?text=Power+Bank',
-    rating: 4.3,
-  },
-];
 
 const Home = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const slides = [
-    'https://via.placeholder.com/1200x400?text=Slide+1+Charger+Deals',
+    '/offer1.png',
     'https://via.placeholder.com/1200x400?text=Slide+2+New+Arrivals',
     'https://via.placeholder.com/1200x400?text=Slide+3+Special+Offers',
   ];
@@ -51,7 +28,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 overflow-hidden">
-            <Header />
+      <Header />
       {/* Banner Slider */}
       <div className="relative w-full h-[40vh] md:h-[50vh] lg:h-[70vh] bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 overflow-hidden">
         {slides.map((slide, index) => (
@@ -71,7 +48,7 @@ const Home = () => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/40"></div>
             {/* Slide Content */}
             <div className="absolute top-1/4 left-6 md:left-12 lg:left-16 text-white z-20">
-              <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold drop-shadow-lg">
+              {/* <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold drop-shadow-lg">
                 {index === 0 && 'Exclusive Charger Deals'}
                 {index === 1 && 'Discover New Arrivals'}
                 {index === 2 && 'Special Offers Today'}
@@ -80,10 +57,10 @@ const Home = () => {
                 {index === 0 && 'Get up to 30% off on fast chargers!'}
                 {index === 1 && 'Explore the latest tech innovations.'}
                 {index === 2 && 'Limited time offers on top accessories.'}
-              </p>
-              <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition-all duration-300 hover:scale-105">
+              </p> */}
+              {/* <button className="mt-4 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow-md transition-all duration-300 hover:scale-105">
                 Shop Now
-              </button>
+              </button> */}
             </div>
           </div>
         ))}
@@ -91,7 +68,7 @@ const Home = () => {
         {/* Navigation Arrows */}
         <button
           onClick={prevSlide}
-          className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-20 bg-white/20 backdrop-blur-md text-white p-2 md:p-3 rounded-full hover:bg-white/40 transition-all duration-300 hover:scale-110 shadow-lg"
+          className="absolute left-4 md:left-8 top-100 -translate-y-1/2 z-20 bg-white/20 backdrop-blur-md text-white p-2 md:p-3 rounded-full hover:bg-white/40 transition-all duration-300 hover:scale-110 shadow-lg"
           aria-label="Previous slide"
         >
           <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
@@ -99,7 +76,7 @@ const Home = () => {
 
         <button
           onClick={nextSlide}
-          className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-20 bg-white/20 backdrop-blur-md text-white p-2 md:p-3 rounded-full hover:bg-white/40 transition-all duration-300 hover:scale-110 shadow-lg"
+          className="absolute right-4 md:right-8 top-100 -translate-y-1/2 z-20 bg-white/20 backdrop-blur-md text-white p-2 md:p-3 rounded-full hover:bg-white/40 transition-all duration-300 hover:scale-110 shadow-lg"
           aria-label="Next slide"
         >
           <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
@@ -131,16 +108,8 @@ const Home = () => {
         <h2 className="text-3xl md:text-4xl font-bold text-gray-800 text-center mb-8">
           Featured Products
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {dummyProducts.map((product) => (
-            <Card
-              key={product.id}
-              name={product.name}
-              price={product.price}
-              image={product.image}
-              rating={product.rating}
-            />
-          ))}
+        <div>
+          <Product/>
         </div>
       </section>
 
