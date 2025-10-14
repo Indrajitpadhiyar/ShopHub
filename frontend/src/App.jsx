@@ -1,15 +1,17 @@
 import React from 'react' 
-import Header from './components/layouts/Header'
 import {BrowserRouter as Router, Routes, Route} from 'react-router-dom'
 import Home from './components/pages/Home'
+import LoginPage from './components/pages/LoginPage'
+import RegisterPage from './components/pages/RegisterPage '
 
 const App = () => {
   return (
     <Router>
-      <Header />
+
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route path="/login" element={<h1>Login</h1>} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
       </Routes>
     </Router>
   )

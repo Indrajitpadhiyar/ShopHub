@@ -1,6 +1,7 @@
 // src/components/Home.js
 import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Header from '../layouts/Header';
 import Footer from '../layouts/Footer';
 import Card from '../layouts/Card';
 
@@ -50,6 +51,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 overflow-hidden">
+            <Header />
       {/* Banner Slider */}
       <div className="relative w-full h-[40vh] md:h-[50vh] lg:h-[70vh] bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 overflow-hidden">
         {slides.map((slide, index) => (
