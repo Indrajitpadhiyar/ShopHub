@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShoppingCart, Heart, Star } from 'lucide-react';
-import ReactStars from "react-rating-stars-component";
-import product from '../pages/Product'
+// import ReactStars from "react-rating-stars-component";
+// import product from '../pages/Product'
 
 const Card = ({ products }) => {
     return (
