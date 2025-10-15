@@ -2,6 +2,8 @@ import React, { useEffect } from "react";
 import Card from "../layouts/Card";
 import { getProducts } from "../../actions/product.action";
 import { useSelector, useDispatch } from "react-redux";
+import Loader from "../layouts/Loader";
+import toast from "react-hot-toast"; // ✅ Import toast
 
 const Product = () => {
   const dispatch = useDispatch();
@@ -11,7 +13,12 @@ const Product = () => {
     dispatch(getProducts());
   }, [dispatch]);
 
-  console.log("Fetched Products:", products); // ✅ check data structure
+  // ✅ Show toast when there's an error
+  useEffect(() => {
+    if (error) {
+      toast.error(error || "Something went wrong while fetching products");
+    }
+  }, [error]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8">
@@ -19,9 +26,7 @@ const Product = () => {
         <h1 className="text-4xl font-bold text-gray-900 mb-8">Our Products</h1>
 
         {loading ? (
-          <p className="text-center text-lg text-gray-700">Loading...</p>
-        ) : error ? (
-          <p className="text-center text-red-500">Error: {error}</p>
+          <Loader />
         ) : products && products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {products.map((p, index) => (
@@ -29,7 +34,7 @@ const Product = () => {
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-600">No products found.</p>
+          !loading && <p className="text-center text-gray-600">No products found.</p>
         )}
       </div>
     </div>

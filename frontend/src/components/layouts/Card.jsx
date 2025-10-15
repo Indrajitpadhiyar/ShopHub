@@ -1,7 +1,10 @@
 import React from "react";
 import { Star, ShoppingCart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Card = ({ product }) => {
+    const navigate = useNavigate();
+
     if (!product) return null;
 
     const imageUrl =
@@ -11,8 +14,16 @@ const Card = ({ product }) => {
     const inStock = product.stock > 0;
     const rating = product.ratings || 0;
 
+    // 👇 Navigate to product detail page
+    const handleCardClick = () => {
+        navigate(`/product/${product._id}`);
+    };
+
     return (
-        <div className="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-blue-400 hover:-translate-y-2">
+        <div
+            onClick={handleCardClick}
+            className="group relative bg-white rounded-xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 hover:border-blue-400 hover:-translate-y-2 cursor-pointer"
+        >
             {/* Animated shine effect */}
             <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/30 to-transparent"></div>
 
@@ -45,9 +56,9 @@ const Card = ({ product }) => {
                         {[1, 2, 3, 4, 5].map((star) => (
                             <Star
                                 key={star}
-                                className={`w-4 h-4 transition-all duration-300 hover:scale-150 hover:-translate-y-1 cursor-pointer ${star <= Math.floor(rating)
-                                        ? "text-yellow-400 fill-yellow-400"
-                                        : "text-gray-300 fill-gray-200"
+                                className={`w-4 h-4 transition-all duration-300 ${star <= Math.floor(rating)
+                                    ? "text-yellow-400 fill-yellow-400"
+                                    : "text-gray-300 fill-gray-200"
                                     }`}
                             />
                         ))}
@@ -69,13 +80,14 @@ const Card = ({ product }) => {
                         </p>
                     </div>
                     <button
+                        onClick={(e) => e.stopPropagation()} // prevent navigation when clicking Add button
                         disabled={!inStock}
                         className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 ${inStock
-                                ? "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg transform hover:scale-110 active:scale-95 hover:gap-3"
-                                : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                            ? "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg transform hover:scale-110 active:scale-95 hover:gap-3"
+                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
                             }`}
                     >
-                        <ShoppingCart className="w-4 h-4 transition-transform duration-300 group-hover:rotate-12" />
+                        <ShoppingCart className="w-4 h-4" />
                         Add
                     </button>
                 </div>
