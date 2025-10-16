@@ -1,0 +1,448 @@
+import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { ShoppingCart, Star, User, Heart, Share2, TruckIcon, ShieldCheck, RefreshCw } from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { useParams } from "react-router-dom";
+import { getProducts } from "../../actions/product.action";
+
+const ProductDetails = () => {
+  const [isZoomed, setIsZoomed] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const { id } = useParams();
+  const dispatch = useDispatch();
+
+  const { products = [], loading, error } = useSelector((state) => state.products) || {};
+
+  useEffect(() => {
+    dispatch(getProducts());
+  }, [dispatch]);
+
+  const product = products.find((p) => p._id === id) || {};
+  const imageUrl = product.images?.[selectedImage]?.url || "https://via.placeholder.com/500x500";
+
+  // Mock suggested products
+  const suggestedProducts = products.filter(p => p._id !== id).slice(0, 4);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <motion.div
+          className="relative w-20 h-20"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        >
+          <div className="absolute inset-0 border-4 border-indigo-200 rounded-full"></div>
+          <div className="absolute inset-0 border-4 border-indigo-600 rounded-full border-t-transparent"></div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-center"
+        >
+          <p className="text-red-500 text-xl font-semibold">Error: {error}</p>
+        </motion.div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4">
+      <div className="max-w-7xl mx-auto">
+        {/* Main Product Section */}
+        <motion.div
+          className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          {/* Image Gallery */}
+          <div className="space-y-4">
+            <motion.div
+              className="relative bg-white rounded-3xl shadow-2xl overflow-hidden group"
+              whileHover={{ scale: 1.02 }}
+              transition={{ duration: 0.3 }}
+            >
+              <motion.div
+                className="aspect-square cursor-zoom-in relative overflow-hidden"
+                onClick={() => setIsZoomed(true)}
+              >
+                <AnimatePresence mode="wait">
+                  <motion.img
+                    key={selectedImage}
+                    src={imageUrl}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ duration: 0.5 }}
+                  />
+                </AnimatePresence>
+
+                <motion.div
+                  className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                  initial={false}
+                >
+                  <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-sm text-gray-800 px-4 py-2 rounded-full text-sm font-medium shadow-lg">
+                    Click to Zoom
+                  </div>
+                </motion.div>
+              </motion.div>
+
+              {/* Action Buttons */}
+              <div className="absolute top-6 right-6 flex flex-col gap-3">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setIsLiked(!isLiked)}
+                  className="bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <Heart
+                    size={24}
+                    className={`${isLiked ? "fill-red-500 text-red-500" : "text-gray-700"} transition-colors`}
+                  />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  className="bg-white/90 backdrop-blur-sm p-3 rounded-full shadow-lg hover:shadow-xl transition-shadow"
+                >
+                  <Share2 size={24} className="text-gray-700" />
+                </motion.button>
+              </div>
+            </motion.div>
+
+            {/* Thumbnails */}
+            {product.images && product.images.length > 1 && (
+              <motion.div
+                className="grid grid-cols-4 gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+              >
+                {product.images.map((item, i) => (
+                  <motion.div
+                    key={i}
+                    whileHover={{ scale: 1.05, y: -5 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setSelectedImage(i)}
+                    className={`relative aspect-square rounded-2xl overflow-hidden cursor-pointer border-4 transition-all ${selectedImage === i
+                        ? "border-indigo-500 shadow-lg"
+                        : "border-white shadow hover:shadow-md"
+                      }`}
+                  >
+                    <img
+                      src={item.url}
+                      alt={`thumbnail-${i}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </div>
+
+          {/* Product Info */}
+          <motion.div
+            className="space-y-6"
+            initial={{ opacity: 0, x: 40 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+          >
+            <div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+              >
+                <p className="text-indigo-600 font-semibold text-sm mb-2 uppercase tracking-wider">
+                  Premium Quality
+                </p>
+                <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
+                  {product.name}
+                </h1>
+              </motion.div>
+
+              <motion.div
+                className="flex items-center gap-4 mb-6"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+              >
+                <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 rounded-full">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      size={18}
+                      className={`${i < Math.floor(product.ratings || 0)
+                          ? "text-white fill-white"
+                          : "text-white/40"
+                        }`}
+                    />
+                  ))}
+                  <span className="ml-2 text-white font-bold">
+                    {product.ratings || 0}
+                  </span>
+                </div>
+                <span className="text-gray-600 font-medium">
+                  ({product.numOfReviews || 0} Reviews)
+                </span>
+              </motion.div>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.6 }}
+              className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6"
+            >
+              <p className="text-gray-700 leading-relaxed text-lg">
+                {product.description}
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.7 }}
+              className="space-y-4"
+            >
+              <div className="flex items-baseline gap-4">
+                <span className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  ₹{product.price?.toLocaleString("en-IN")}
+                </span>
+                <span className="text-2xl text-gray-400 line-through">
+                  ₹{((product.price || 0) * 1.3).toLocaleString("en-IN")}
+                </span>
+              </div>
+
+              <motion.p
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm ${product.stock > 0
+                    ? "bg-green-100 text-green-700"
+                    : "bg-red-100 text-red-700"
+                  }`}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                {product.stock > 0
+                  ? `✓ In Stock (${product.stock} available)`
+                  : "✗ Out of Stock"}
+              </motion.p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.8 }}
+              className="flex gap-4"
+            >
+              <motion.button
+                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(79, 70, 229, 0.3)" }}
+                whileTap={{ scale: 0.95 }}
+                disabled={product.stock === 0}
+                className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-8 rounded-2xl flex items-center justify-center gap-3 font-bold text-lg shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <ShoppingCart size={24} />
+                Add to Cart
+              </motion.button>
+            </motion.div>
+
+            {/* Features */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.9 }}
+              className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-200"
+            >
+              {[
+                { icon: TruckIcon, text: "Free Delivery" },
+                { icon: ShieldCheck, text: "Secure Payment" },
+                { icon: RefreshCw, text: "Easy Returns" }
+              ].map((feature, i) => (
+                <motion.div
+                  key={i}
+                  whileHover={{ y: -5 }}
+                  className="flex flex-col items-center text-center gap-2"
+                >
+                  <div className="bg-indigo-100 p-3 rounded-full">
+                    <feature.icon size={24} className="text-indigo-600" />
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">
+                    {feature.text}
+                  </span>
+                </motion.div>
+              ))}
+            </motion.div>
+          </motion.div>
+        </motion.div>
+
+        {/* Reviews Section */}
+        <motion.div
+          className="bg-white rounded-3xl shadow-xl p-8 mb-12"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.6 }}
+        >
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+            <div className="w-1 h-8 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></div>
+            Customer Reviews
+          </h2>
+
+          {product.reviews && product.reviews.length > 0 ? (
+            <div className="space-y-6">
+              {product.reviews.map((review, index) => (
+                <motion.div
+                  key={index}
+                  className="bg-gradient-to-br from-gray-50 to-white rounded-2xl p-6 border border-gray-100"
+                  initial={{ opacity: 0, x: -40 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.1 + index * 0.1 }}
+                  whileHover={{ scale: 1.02, boxShadow: "0 10px 30px rgba(0,0,0,0.1)" }}
+                >
+                  <div className="flex items-start gap-4">
+                    <motion.div
+                      className="bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full p-4"
+                      whileHover={{ rotate: 360 }}
+                      transition={{ duration: 0.6 }}
+                    >
+                      <User size={28} className="text-white" />
+                    </motion.div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-bold text-gray-900 text-lg">
+                          {review.name || "Anonymous"}
+                        </h3>
+                        <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 px-3 py-1 rounded-full">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              size={14}
+                              className={`${i < Math.floor(review.rating || 0)
+                                  ? "text-white fill-white"
+                                  : "text-white/40"
+                                }`}
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <p className="text-gray-700 leading-relaxed">
+                        {review.comment || "No comment"}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : (
+            <motion.div
+              className="text-center py-12"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+            >
+              <div className="bg-gray-100 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star size={40} className="text-gray-400" />
+              </div>
+              <p className="text-gray-500 text-lg">
+                No reviews yet. Be the first to review this product!
+              </p>
+            </motion.div>
+          )}
+        </motion.div>
+
+        {/* Suggested Products */}
+        {suggestedProducts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.2, duration: 0.6 }}
+          >
+            <h2 className="text-3xl font-bold text-gray-900 mb-8 flex items-center gap-3">
+              <div className="w-1 h-8 bg-gradient-to-b from-indigo-600 to-purple-600 rounded-full"></div>
+              You May Also Like
+            </h2>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {suggestedProducts.map((item, index) => (
+                <motion.div
+                  key={item._id}
+                  className="bg-white rounded-2xl overflow-hidden shadow-lg cursor-pointer group"
+                  initial={{ opacity: 0, y: 40 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 1.3 + index * 0.1 }}
+                  whileHover={{ y: -10, boxShadow: "0 20px 40px rgba(0,0,0,0.15)" }}
+                >
+                  <div className="relative overflow-hidden aspect-square">
+                    <motion.img
+                      src={item.images?.[0]?.url || "https://via.placeholder.com/300"}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.4 }}
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold text-gray-900 mb-2 truncate group-hover:text-indigo-600 transition-colors">
+                      {item.name}
+                    </h3>
+                    <div className="flex items-center mb-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={14}
+                          className={`${i < Math.floor(item.ratings || 0)
+                              ? "text-yellow-400 fill-yellow-400"
+                              : "text-gray-300"
+                            }`}
+                        />
+                      ))}
+                      <span className="ml-2 text-xs text-gray-600">
+                        ({item.ratings || 0})
+                      </span>
+                    </div>
+                    <p className="text-xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                      ₹{item.price?.toLocaleString("en-IN")}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      {/* Zoomed Image Modal */}
+      <AnimatePresence>
+        {isZoomed && (
+          <motion.div
+            className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 cursor-zoom-out p-4"
+            onClick={() => setIsZoomed(false)}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <motion.img
+              src={imageUrl}
+              alt={product.name}
+              className="max-h-[90vh] max-w-[90vw] rounded-2xl shadow-2xl object-contain"
+              initial={{ scale: 0.5, opacity: 0, rotate: -10 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              exit={{ scale: 0.5, opacity: 0, rotate: 10 }}
+              transition={{ type: "spring", damping: 25 }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+export default ProductDetails;
