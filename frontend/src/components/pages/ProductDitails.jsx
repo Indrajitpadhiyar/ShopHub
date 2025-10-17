@@ -1,3 +1,4 @@
+// src/components/ProductDetails.js
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,6 +19,7 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { getProducts } from "../../actions/product.action";
 import Loader from "../layouts/Loader";
+import Header from "../layouts/Header"; // Placeholder for your Header component
 
 // Sub-component: Image Gallery
 const ImageGallery = ({ product, selectedImage, setSelectedImage, isZoomed, setIsZoomed, isLiked, setIsLiked }) => {
@@ -593,8 +595,11 @@ const ProductDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-12 px-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+      {/* Header Section */}
+      <Header />
+
+      <div className="max-w-7xl mx-auto py-12 px-4">
         <motion.div
           className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12"
           initial={{ opacity: 0, y: 40 }}
