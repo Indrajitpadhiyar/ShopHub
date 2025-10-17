@@ -1,4 +1,3 @@
-// src/components/ReviewCard.jsx
 import React from "react";
 import { motion } from "framer-motion";
 import { Star, User } from "lucide-react";

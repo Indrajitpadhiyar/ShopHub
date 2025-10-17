@@ -1,3 +1,4 @@
+// src/components/Header.jsx
 import React, { useState } from "react";
 import logo from "../../assets/logo.png";
 
@@ -38,8 +39,11 @@ const categories = [
   },
 ];
 
-const Navbar = () => {
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+// Flatten all items into a single "All Products" list
+const allProducts = categories.flatMap((cat) => cat.items);
+
+const Header = () => {
+  const [categoriesDropdownOpen, setCategoriesDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -97,19 +101,20 @@ const Navbar = () => {
 
           {/* Desktop Menu */}
           <nav className="hidden lg:flex items-center gap-1">
+            {/* Categories Dropdown */}
             <div
               className="relative"
-              onMouseEnter={() => setDropdownOpen(true)}
-              onMouseLeave={() => setDropdownOpen(false)}
+              onMouseEnter={() => setCategoriesDropdownOpen(true)}
+              onMouseLeave={() => setCategoriesDropdownOpen(false)}
             >
               <button
                 className="font-semibold text-gray-700 hover:text-blue-600 transition-all duration-200 flex items-center gap-2 py-2.5 px-4 rounded-lg hover:bg-blue-50 group"
                 aria-haspopup="true"
-                aria-expanded={dropdownOpen}
+                aria-expanded={categoriesDropdownOpen}
               >
                 CATEGORIES
                 <svg
-                  className={`w-4 h-4 transition-transform duration-300 ${dropdownOpen ? "rotate-180" : ""} group-hover:text-blue-600`}
+                  className={`w-4 h-4 transition-transform duration-300 ${categoriesDropdownOpen ? "rotate-180" : ""} group-hover:text-blue-600`}
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2.5"
@@ -119,31 +124,34 @@ const Navbar = () => {
                 </svg>
               </button>
 
-              {/* Enhanced Dropdown */}
+              {/* Categories Dropdown Menu */}
               <div
                 className={`absolute left-0 top-full mt-2 bg-white shadow-2xl border border-gray-100 rounded-2xl z-50 min-w-[800px] transition-all duration-300 origin-top overflow-hidden
-                  ${dropdownOpen ? "scale-y-100 opacity-100 pointer-events-auto" : "scale-y-0 opacity-0 pointer-events-none"}
+                  ${categoriesDropdownOpen ? "scale-y-100 opacity-100 pointer-events-auto" : "scale-y-0 opacity-0 pointer-events-none"}
                 `}
               >
-                <div className="grid grid-cols-4 gap-6 p-8 bg-gradient-to-br from-gray-50 to-white">
-                  {categories.map((cat, idx) => (
-                    <div key={cat.title} className="group/cat">
-                      <h4 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
-                        <span className="w-1 h-6 bg-blue-600 rounded-full"></span>
-                        {cat.title}
-                      </h4>
-                      <ul className="space-y-1.5">
-                        {cat.items.map((item) => (
-                          <li
-                            key={item}
-                            className="text-gray-600 hover:text-blue-600 cursor-pointer transition-all duration-200 hover:bg-blue-50 py-2 px-3 rounded-lg text-sm font-medium hover:translate-x-1"
-                          >
-                            {item}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  ))}
+                <div className="p-6 bg-gradient-to-br from-gray-50 to-white">
+                  <h3 className="text-xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-200">Categories</h3>
+                  <div className="grid grid-cols-4 gap-6">
+                    {categories.map((cat, idx) => (
+                      <div key={cat.title} className="group/cat">
+                        <h4 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
+                          <span className="w-1 h-6 bg-blue-600 rounded-full"></span>
+                          {cat.title}
+                        </h4>
+                        <ul className="space-y-1.5">
+                          {cat.items.map((item) => (
+                            <li
+                              key={item}
+                              className="text-gray-600 hover:text-blue-600 cursor-pointer transition-all duration-200 hover:bg-blue-50 py-2 px-3 rounded-lg text-sm font-medium hover:translate-x-1"
+                            >
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-8 py-4 flex items-center justify-between">
                   <p className="text-white text-sm font-medium">Need help finding something?</p>
@@ -153,6 +161,14 @@ const Navbar = () => {
                 </div>
               </div>
             </div>
+
+            {/* All Products - No Dropdown */}
+            <a
+              href="#"
+              className="font-semibold text-gray-700 hover:text-blue-600 transition-all duration-200 py-2.5 px-4 rounded-lg hover:bg-blue-50"
+            >
+              ALL PRODUCTS
+            </a>
 
             <a
               href="#"
@@ -285,24 +301,40 @@ const Navbar = () => {
           }`}
       >
         <div className="px-6 py-4 space-y-4 max-h-96 overflow-y-auto">
-          {categories.map((cat) => (
-            <div key={cat.title} className="border-b border-gray-100 pb-4 last:border-0">
-              <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
-                {cat.title}
-              </h4>
-              <ul className="space-y-2 ml-3">
-                {cat.items.map((item) => (
-                  <li
-                    key={item}
-                    className="text-gray-600 hover:text-blue-600 cursor-pointer transition-all duration-200 py-1.5 text-sm"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <div className="border-b border-gray-100 pb-4">
+            <h3 className="font-bold text-gray-900 mb-3 text-lg">Categories</h3>
+            {categories.map((cat) => (
+              <div key={cat.title} className="border-b border-gray-100 pb-4 last:border-0">
+                <h4 className="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                  <span className="w-1 h-5 bg-blue-600 rounded-full"></span>
+                  {cat.title}
+                </h4>
+                <ul className="space-y-2 ml-3">
+                  {cat.items.map((item) => (
+                    <li
+                      key={item}
+                      className="text-gray-600 hover:text-blue-600 cursor-pointer transition-all duration-200 py-1.5 text-sm"
+                    >
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="border-b border-gray-100 pb-4">
+            <h3 className="font-bold text-gray-900 mb-3 text-lg">All Products</h3>
+            <ul className="space-y-2 ml-3">
+              {allProducts.map((product, idx) => (
+                <li
+                  key={idx}
+                  className="text-gray-600 hover:text-blue-600 cursor-pointer transition-all duration-200 py-1.5 text-sm"
+                >
+                  {product}
+                </li>
+              ))}
+            </ul>
+          </div>
           <div className="space-y-2 pt-2">
             <a href="#" className="block text-gray-700 hover:text-blue-600 font-semibold transition-all duration-200 py-2">
               DEALS
@@ -323,4 +355,4 @@ const Navbar = () => {
   );
 };
 
-export default Navbar;
+export default Header;
