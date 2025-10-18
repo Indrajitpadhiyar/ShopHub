@@ -1,6 +1,6 @@
-// src/components/Header.jsx
 import React, { useState } from "react";
 import logo from "../../assets/logo.png";
+import SearchBar from "./SearchBar";
 
 const categories = [
   {
@@ -39,7 +39,6 @@ const categories = [
   },
 ];
 
-// Flatten all items into a single "All Products" list
 const allProducts = categories.flatMap((cat) => cat.items);
 
 const Header = () => {
@@ -133,7 +132,7 @@ const Header = () => {
                 <div className="p-6 bg-gradient-to-br from-gray-50 to-white">
                   <h3 className="text-xl font-bold text-gray-900 mb-6 pb-4 border-b border-gray-200">Categories</h3>
                   <div className="grid grid-cols-4 gap-6">
-                    {categories.map((cat, idx) => (
+                    {categories.map((cat) => (
                       <div key={cat.title} className="group/cat">
                         <h4 className="font-bold text-gray-900 mb-4 text-sm uppercase tracking-wide flex items-center gap-2">
                           <span className="w-1 h-6 bg-blue-600 rounded-full"></span>
@@ -162,9 +161,9 @@ const Header = () => {
               </div>
             </div>
 
-            {/* All Products - No Dropdown */}
+            {/* All Products */}
             <a
-              href="#"
+              href="/AllProduct"
               className="font-semibold text-gray-700 hover:text-blue-600 transition-all duration-200 py-2.5 px-4 rounded-lg hover:bg-blue-50"
             >
               ALL PRODUCTS
@@ -186,23 +185,9 @@ const Header = () => {
             </a>
           </nav>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex items-center bg-gray-100 rounded-full px-5 py-2.5 shadow-sm hover:shadow-md transition-all duration-300 border border-transparent hover:border-blue-200 group">
-            <svg
-              className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors duration-200"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search products, brands..."
-              className="ml-3 bg-transparent outline-none w-64 text-sm text-gray-700 placeholder-gray-400 transition-all duration-300"
-            />
+          {/* Desktop Search Bar Component */}
+          <div className="hidden md:block">
+            <SearchBar />
           </div>
 
           {/* Action Icons */}
@@ -275,23 +260,7 @@ const Header = () => {
 
         {/* Mobile Search */}
         <div className="md:hidden px-6 pb-4">
-          <div className="flex items-center bg-gray-100 rounded-full px-4 py-2.5 shadow-sm">
-            <svg
-              className="w-5 h-5 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <line x1="21" y1="21" x2="16.65" y2="16.65" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search..."
-              className="ml-3 bg-transparent outline-none w-full text-sm text-gray-700 placeholder-gray-400"
-            />
-          </div>
+          <SearchBar />
         </div>
       </div>
 

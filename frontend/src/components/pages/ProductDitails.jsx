@@ -19,8 +19,9 @@ import {
 import { useSelector, useDispatch } from "react-redux";
 import { getProducts } from "../../actions/product.action";
 import Loader from "../layouts/Loader";
-import Header from "../layouts/Header"; // Placeholder for your Header component
-import ReviewCard from "../layouts/ReviewCard"; // Import the new ReviewCard component
+import Header from "../layouts/Header";
+import Footer from "../layouts/Footer";
+import ReviewCard from "../layouts/ReviewCard";
 
 // Sub-component: Image Gallery
 const ImageGallery = ({ product, selectedImage, setSelectedImage, isZoomed, setIsZoomed, isLiked, setIsLiked }) => {
@@ -562,6 +563,7 @@ const ProductDetails = () => {
 
         {suggestedProducts.length > 0 && <SuggestedProducts suggestedProducts={suggestedProducts} />}
       </div>
+      <Footer />
     </div>
   );
 };
