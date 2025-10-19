@@ -75,6 +75,25 @@ const SearchBar = () => {
         setSearchQuery(e.target.value);
     };
 
+    // ✅ NEW: Handle Enter key press to navigate to products page with search query
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter' && searchQuery.trim()) {
+            // Navigate to products page with search parameter
+            navigate(`/AllProduct?search=${encodeURIComponent(searchQuery.trim())}`);
+            setIsSearchOpen(false);
+            setIsFocused(false);
+        }
+    };
+
+    // ✅ NEW: Handle search button click
+    const handleSearchSubmit = () => {
+        if (searchQuery.trim()) {
+            navigate(`/AllProduct?search=${encodeURIComponent(searchQuery.trim())}`);
+            setIsSearchOpen(false);
+            setIsFocused(false);
+        }
+    };
+
     const handleProductClick = (product) => {
         // Navigate to product detail page
         navigate(`/product/${product._id || product.id}`);
@@ -180,26 +199,32 @@ const SearchBar = () => {
             {/* Search Input */}
             <div
                 className={`flex items-center bg-white rounded-full px-7 py-4 shadow-lg transition-all duration-300 border-2 ${isFocused
-                        ? 'border-blue-500 shadow-xl shadow-blue-200 scale-[1.02]'
-                        : 'border-transparent hover:border-blue-300 hover:shadow-xl'
+                    ? 'border-blue-500 shadow-xl shadow-blue-200 scale-[1.02]'
+                    : 'border-transparent hover:border-blue-300 hover:shadow-xl'
                     }`}
             >
-                <svg
-                    className={`w-7 h-7 transition-all duration-300 ${isFocused ? 'text-blue-600 scale-110' : 'text-gray-400'
-                        }`}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                    viewBox="0 0 24 24"
+                <button
+                    onClick={handleSearchSubmit}
+                    className="flex-shrink-0 hover:scale-110 transition-transform duration-200"
                 >
-                    <circle cx="11" cy="11" r="8" />
-                    <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
+                    <svg
+                        className={`w-7 h-7 transition-all duration-300 ${isFocused ? 'text-blue-600 scale-110' : 'text-gray-400'
+                            }`}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.5"
+                        viewBox="0 0 24 24"
+                    >
+                        <circle cx="11" cy="11" r="8" />
+                        <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                    </svg>
+                </button>
                 <input
                     type="text"
-                    placeholder="Search products, brands, categories..."
+                    placeholder="Search products, brands, categories... (Press Enter)"
                     value={searchQuery}
                     onChange={handleSearchChange}
+                    onKeyPress={handleKeyPress}
                     onFocus={() => setIsFocused(true)}
                     className="ml-5 bg-transparent outline-none w-full text-lg text-gray-700 placeholder-gray-400 font-medium"
                 />
@@ -229,8 +254,8 @@ const SearchBar = () => {
             {/* Search Results Dropdown */}
             <div
                 className={`absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 origin-top z-50 ${isSearchOpen
-                        ? 'scale-y-100 opacity-100 pointer-events-auto'
-                        : 'scale-y-0 opacity-0 pointer-events-none'
+                    ? 'scale-y-100 opacity-100 pointer-events-auto'
+                    : 'scale-y-0 opacity-0 pointer-events-none'
                     }`}
             >
                 <div className="p-4">
@@ -303,7 +328,7 @@ const SearchBar = () => {
                                 No products found for "{searchQuery}"
                             </p>
                             <p className="text-gray-400 text-xs mt-1">
-                                Try different keywords or browse categories
+                                Press Enter to search all products
                             </p>
                         </div>
                     )}
@@ -319,10 +344,10 @@ const SearchBar = () => {
                             }
                         </p>
                         <button
-                            onClick={() => navigate('/AllProduct')}
+                            onClick={handleSearchSubmit}
                             className="bg-white text-blue-600 px-4 py-1.5 rounded-lg text-xs font-semibold hover:bg-blue-50 transition-colors duration-200"
                         >
-                            View All Products
+                            View All Results
                         </button>
                     </div>
                 )}
