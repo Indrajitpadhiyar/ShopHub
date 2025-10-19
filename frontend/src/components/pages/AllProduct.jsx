@@ -253,9 +253,6 @@ const AllProduct = () => {
                             )}
                         </h1>
                         <div className="w-20 sm:w-24 h-1 bg-gradient-to-r from-blue-500 to-purple-500 mx-auto rounded-full" />
-                        <p className="text-gray-600 mt-4 text-sm sm:text-base">
-                            {filteredProducts.length} {filteredProducts.length === 1 ? "product" : "products"} found
-                        </p>
                     </motion.div>
 
                     {/* Filters and Sort Section */}
