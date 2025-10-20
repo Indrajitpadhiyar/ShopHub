@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import logo from "../../assets/logo.png";
 import SearchBar from "./SearchBar";
+import { useNavigate } from "react-router-dom";
 
 const categories = [
   {
@@ -44,6 +45,11 @@ const allProducts = categories.flatMap((cat) => cat.items);
 const Header = () => {
   const [categoriesDropdownOpen, setCategoriesDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate(); // ✅ Move useNavigate inside the component
+
+  const handleLogoClick = () => {
+    navigate("/"); // ✅ This will navigate to home page
+  };
 
   return (
     <header className="w-full bg-white shadow-md relative z-50">
@@ -88,9 +94,10 @@ const Header = () => {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <img
+              onClick={handleLogoClick} // ✅ Use the handler function
               src={logo}
               alt="Logo"
-              className="h-14 w-auto object-contain transition-transform duration-300 hover:scale-110"
+              className="h-14 w-auto object-contain transition-transform duration-300 hover:scale-110 cursor-pointer" // ✅ Added cursor-pointer
               style={{
                 filter:
                   "brightness(0) saturate(100%) invert(18%) sepia(99%) saturate(7477%) hue-rotate(212deg) brightness(95%) contrast(97%)",
@@ -219,7 +226,7 @@ const Header = () => {
             </a>
 
             <a
-              href="#"
+              href="/AddToCart"
               className="p-2.5 rounded-full hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all duration-200 relative group"
             >
               <svg
