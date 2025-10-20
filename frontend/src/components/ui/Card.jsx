@@ -8,90 +8,90 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Confirmation Modal Component
 const ConfirmationModal = ({ isOpen, onClose, onConfirm, product }) => {
-  if (!isOpen) return null;
+    if (!isOpen) return null;
 
-  return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          onClick={onClose}
-        >
-          <motion.div
-            className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6"
-            initial={{ scale: 0.5, opacity: 0, y: 50 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.5, opacity: 0, y: 50 }}
-            transition={{ type: "spring", damping: 25 }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-                <ShoppingCart className="w-5 h-5 text-blue-600" />
-                Add to Cart
-              </h3>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-              >
-                <X className="w-5 h-5 text-gray-500" />
-              </button>
-            </div>
+    return (
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div
+                    className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                >
+                    <motion.div
+                        className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6"
+                        initial={{ scale: 0.5, opacity: 0, y: 50 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.5, opacity: 0, y: 50 }}
+                        transition={{ type: "spring", damping: 25 }}
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                                <ShoppingCart className="w-5 h-5 text-blue-600" />
+                                Add to Cart
+                            </h3>
+                            <button
+                                onClick={onClose}
+                                className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                            >
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
 
-            {/* Product Info */}
-            <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-2xl">
-              <img
-                src={product.images?.[0]?.url || "https://via.placeholder.com/400x300?text=No+Image"}
-                alt={product.name}
-                className="w-16 h-16 rounded-xl object-cover"
-              />
-              <div className="flex-1">
-                <h4 className="font-semibold text-gray-900 line-clamp-2">
-                  {product.name}
-                </h4>
-                <p className="text-lg font-bold text-blue-600">
-                  ₹{product.price?.toLocaleString("en-IN") || 0}
-                </p>
-              </div>
-            </div>
+                        {/* Product Info */}
+                        <div className="flex items-center gap-4 mb-6 p-4 bg-gray-50 rounded-2xl">
+                            <img
+                                src={product.images?.[0]?.url || "https://via.placeholder.com/400x300?text=No+Image"}
+                                alt={product.name}
+                                className="w-16 h-16 rounded-xl object-cover"
+                            />
+                            <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900 line-clamp-2">
+                                    {product.name}
+                                </h4>
+                                <p className="text-lg font-bold text-blue-600">
+                                    ₹{product.price?.toLocaleString("en-IN") || 0}
+                                </p>
+                            </div>
+                        </div>
 
-            {/* Confirmation Message */}
-            <p className="text-gray-600 mb-6 text-center">
-              Are you sure you want to add this item to your cart?
-            </p>
+                        {/* Confirmation Message */}
+                        <p className="text-gray-600 mb-6 text-center">
+                            Are you sure you want to add this item to your cart?
+                        </p>
 
-            {/* Action Buttons */}
-            <div className="flex gap-3">
-              <button
-                onClick={onClose}
-                className="flex-1 py-3 px-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={onConfirm}
-                className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transform hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                <Check className="w-4 h-4" />
-                Yes, Add to Cart
-              </button>
-            </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
+                        {/* Action Buttons */}
+                        <div className="flex gap-3">
+                            <button
+                                onClick={onClose}
+                                className="flex-1 py-3 px-4 border-2 border-gray-300 text-gray-700 rounded-xl font-semibold hover:border-gray-400 hover:bg-gray-50 transition-all duration-200"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={onConfirm}
+                                className="flex-1 py-3 px-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transform hover:scale-105 active:scale-95 transition-all duration-200 flex items-center justify-center gap-2"
+                            >
+                                <Check className="w-4 h-4" />
+                                Yes, Add to Cart
+                            </button>
+                        </div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
 };
 
 const Card = ({ product }) => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const { cartItems } = useSelector((state) => state.cart);
-    
+
     // State for confirmation modal
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [isAdding, setIsAdding] = useState(false);
@@ -118,7 +118,7 @@ const Card = ({ product }) => {
     // Show confirmation modal
     const handleAddClick = (e) => {
         e.stopPropagation();
-        
+
         if (!inStock) {
             toast.error("Product is out of stock");
             return;
@@ -147,12 +147,12 @@ const Card = ({ product }) => {
                 },
             });
             setShowConfirmation(false);
-            
+
             // Optional: Auto-navigate to cart after successful add
             // setTimeout(() => {
             //     navigate("/cart");
             // }, 1000);
-            
+
         } catch (error) {
             toast.error(error?.message || "Failed to add product to cart");
         } finally {
@@ -186,7 +186,7 @@ const Card = ({ product }) => {
 
                     {/* Stock Badge */}
                     {!inStock && (
-                        <motion.div 
+                        <motion.div
                             className="absolute top-3 right-3 bg-red-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -197,7 +197,7 @@ const Card = ({ product }) => {
 
                     {/* In Cart Badge */}
                     {isInCart && (
-                        <motion.div 
+                        <motion.div
                             className="absolute top-3 left-3 bg-green-500 text-white text-xs font-semibold px-3 py-1.5 rounded-lg flex items-center gap-1"
                             initial={{ scale: 0 }}
                             animate={{ scale: 1 }}
@@ -247,13 +247,12 @@ const Card = ({ product }) => {
                         <motion.button
                             onClick={handleAddClick}
                             disabled={!inStock || isAdding}
-                            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 relative overflow-hidden ${
-                                inStock
-                                    ? isInCart 
+                            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg font-medium transition-all duration-200 relative overflow-hidden ${inStock
+                                    ? isInCart
                                         ? "bg-green-600 text-white hover:bg-green-700 hover:shadow-lg transform hover:scale-105"
                                         : "bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg transform hover:scale-105 hover:gap-3"
                                     : "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            } ${isAdding ? "opacity-50 cursor-not-allowed" : ""}`}
+                                } ${isAdding ? "opacity-50 cursor-not-allowed" : ""}`}
                             whileHover={inStock && !isInCart && !isAdding ? { scale: 1.05 } : {}}
                             whileTap={inStock && !isAdding ? { scale: 0.95 } : {}}
                         >
@@ -266,12 +265,12 @@ const Card = ({ product }) => {
                                     transition={{ duration: 0.3 }}
                                 />
                             )}
-                            
+
                             <ShoppingCart className="w-4 h-4 relative z-10" />
                             <span className="relative z-10">
                                 {isAdding ? "Adding..." : isInCart ? "View Cart" : "Add"}
                             </span>
-                            
+
                             {/* Cart counter animation */}
                             {isInCart && cartQuantity > 0 && (
                                 <motion.span

@@ -6,7 +6,7 @@ import Header from "../layouts/Header";
 import Footer from "../layouts/Footer";
 import Loader from "../layouts/Loader";
 import toast from "react-hot-toast";
-import Card from "../layouts/Card";
+import Card from "../ui/Card";
 import FilterSidebar from "../layouts/FilterSidebar ";
 import { Filter } from "lucide-react";
 

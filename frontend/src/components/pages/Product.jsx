@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import Card from "../layouts/Card";
+import Card from "../ui/Card";
 import { getProducts } from "../../actions/product.action";
 import { useSelector, useDispatch } from "react-redux";
 import Loader from "../layouts/Loader";
@@ -106,8 +106,8 @@ const Product = () => {
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
                     className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${selectedCategory === category
-                        ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-300"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md"
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-300"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md"
                       }`}
                   >
                     {category.charAt(0).toUpperCase() + category.slice(1)}

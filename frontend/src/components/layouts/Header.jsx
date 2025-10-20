@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import logo from "../../assets/logo.png";
 import SearchBar from "./SearchBar";
+import ProfileIcon from "../ui/ProfileIcon";
 import { useNavigate } from "react-router-dom";
 
 const categories = [
@@ -45,10 +46,10 @@ const allProducts = categories.flatMap((cat) => cat.items);
 const Header = () => {
   const [categoriesDropdownOpen, setCategoriesDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const navigate = useNavigate(); // ✅ Move useNavigate inside the component
+  const navigate = useNavigate();
 
   const handleLogoClick = () => {
-    navigate("/"); // ✅ This will navigate to home page
+    navigate("/");
   };
 
   return (
@@ -94,10 +95,10 @@ const Header = () => {
           {/* Logo */}
           <div className="flex items-center gap-3">
             <img
-              onClick={handleLogoClick} // ✅ Use the handler function
+              onClick={handleLogoClick}
               src={logo}
               alt="Logo"
-              className="h-14 w-auto object-contain transition-transform duration-300 hover:scale-110 cursor-pointer" // ✅ Added cursor-pointer
+              className="h-14 w-auto object-contain transition-transform duration-300 hover:scale-110 cursor-pointer"
               style={{
                 filter:
                   "brightness(0) saturate(100%) invert(18%) sepia(99%) saturate(7477%) hue-rotate(212deg) brightness(95%) contrast(97%)",
@@ -201,16 +202,6 @@ const Header = () => {
           <div className="flex items-center gap-3">
             <a
               href="#"
-              className="hidden lg:flex items-center gap-2 font-semibold text-gray-700 hover:text-blue-600 transition-all duration-200 py-2 px-4 rounded-lg hover:bg-blue-50"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              LOGIN
-            </a>
-
-            <a
-              href="#"
               className="p-2.5 rounded-full hover:bg-blue-50 text-gray-700 hover:text-red-500 transition-all duration-200 relative group"
             >
               <svg
@@ -242,6 +233,10 @@ const Header = () => {
               </svg>
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg">2</span>
             </a>
+
+            <div className="hidden lg:flex items-center gap-2 py-2 px-4 rounded-lg hover:bg-blue-50 transition-all duration-200">
+              <ProfileIcon />
+            </div>
 
             {/* Mobile Menu Toggle */}
             <button
@@ -318,12 +313,43 @@ const Header = () => {
             <a href="#" className="block text-gray-700 hover:text-blue-600 font-semibold transition-all duration-200 py-2">
               NEW ARRIVALS
             </a>
-            <a href="#" className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-semibold transition-all duration-200 py-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            <a
+              href="#"
+              className="p-2.5 rounded-full hover:bg-blue-50 text-gray-700 hover:text-red-500 transition-all duration-200 relative group block"
+            >
+              <svg
+                className="w-6 h-6 inline-block"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path d="M4.318 6.318a4.5 4.5 0 016.364 0L12 7.293l1.318-1.318a4.5 4.5 0 116.364 6.364L12 21.293l-7.682-7.682a4.5 4.5 0 010-6.364z" />
               </svg>
-              LOGIN / SIGNUP
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">3</span>
+              <span className="ml-2 text-sm font-semibold">Wishlist</span>
             </a>
+            <a
+              href="/AddToCart"
+              className="p-2.5 rounded-full hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all duration-200 relative group block"
+            >
+              <svg
+                className="w-6 h-6 inline-block"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <circle cx="9" cy="21" r="1" />
+                <circle cx="20" cy="21" r="1" />
+                <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
+              </svg>
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg">2</span>
+              <span className="ml-2 text-sm font-semibold">Cart</span>
+            </a>
+            <div className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-semibold transition-all duration-200 py-2">
+              <ProfileIcon />
+            </div>
           </div>
         </div>
       </div>
