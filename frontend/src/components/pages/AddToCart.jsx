@@ -1,22 +1,38 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-    Trash2, Plus, Minus, ShoppingBag, ArrowRight,
-    CreditCard, Shield, Truck, RotateCcw
+    Trash2,
+    Plus,
+    Minus,
+    ShoppingBag,
+    ArrowRight,
+    CreditCard,
+    Shield,
+    Truck,
+    RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { removeFromCart, updateCartQuantity } from "../../actions/cart.action";
 import toast from "react-hot-toast";
 import Header from "../layouts/Header";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 
 const AddToCart = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate(); // Initialize useNavigate
     const { cartItems } = useSelector((state) => state.cart);
+    const { isAuthenticated } = useSelector((state) => state.auth); // Access auth state
     const [localCart, setLocalCart] = useState([]);
 
+    // Check authentication on component mount
     useEffect(() => {
-        setLocalCart(cartItems || []);
-    }, [cartItems]);
+        if (!isAuthenticated) {
+            toast.error("Please log in to view your cart");
+            navigate("/login"); // Redirect to login page if not authenticated
+        } else {
+            setLocalCart(cartItems || []);
+        }
+    }, [cartItems, isAuthenticated, navigate]);
 
     const handleRemoveItem = (productId) => {
         dispatch(removeFromCart(productId));
@@ -27,8 +43,8 @@ const AddToCart = () => {
         if (newQuantity < 1) return;
 
         dispatch(updateCartQuantity(productId, newQuantity));
-        setLocalCart(prev =>
-            prev.map(item =>
+        setLocalCart((prev) =>
+            prev.map((item) =>
                 item.product === productId
                     ? { ...item, quantity: newQuantity }
                     : item
@@ -37,7 +53,7 @@ const AddToCart = () => {
     };
 
     const calculateTotal = () => {
-        return localCart.reduce((total, item) => total + (item.price * item.quantity), 0);
+        return localCart.reduce((total, item) => total + item.price * item.quantity, 0);
     };
 
     const calculateDiscount = () => {
@@ -54,9 +70,9 @@ const AddToCart = () => {
         visible: {
             opacity: 1,
             transition: {
-                staggerChildren: 0.1
-            }
-        }
+                staggerChildren: 0.1,
+            },
+        },
     };
 
     const itemVariants = {
@@ -66,18 +82,24 @@ const AddToCart = () => {
             x: 0,
             transition: {
                 type: "spring",
-                stiffness: 100
-            }
+                stiffness: 100,
+            },
         },
         exit: {
             opacity: 0,
             x: 50,
             transition: {
-                duration: 0.3
-            }
-        }
+                duration: 0.3,
+            },
+        },
     };
 
+    // If not authenticated, return null (since redirection is handled in useEffect)
+    if (!isAuthenticated) {
+        return null;
+    }
+
+    // Rest of the component remains the same
     if (!localCart || localCart.length === 0) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -152,7 +174,7 @@ const AddToCart = () => {
                             Shopping Cart
                         </h1>
                         <p className="text-gray-600">
-                            {localCart.length} {localCart.length === 1 ? 'item' : 'items'} in your cart
+                            {localCart.length} {localCart.length === 1 ? "item" : "items"} in your cart
                         </p>
                     </div>
 
@@ -195,7 +217,10 @@ const AddToCart = () => {
                                                     className="flex-shrink-0"
                                                 >
                                                     <img
-                                                        src={item.image || "https://via.placeholder.com/400x300?text=No+Image"}
+                                                        src={
+                                                            item.image ||
+                                                            "https://via.placeholder.com/400x300?text=No+Image"
+                                                        }
                                                         alt={item.name}
                                                         className="w-24 h-24 rounded-2xl object-cover shadow-md group-hover:shadow-lg transition-all duration-300"
                                                     />
@@ -224,7 +249,9 @@ const AddToCart = () => {
                                                             <motion.button
                                                                 whileHover={{ scale: 1.1 }}
                                                                 whileTap={{ scale: 0.9 }}
-                                                                onClick={() => handleQuantityChange(item.product, item.quantity - 1)}
+                                                                onClick={() =>
+                                                                    handleQuantityChange(item.product, item.quantity - 1)
+                                                                }
                                                                 className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200 group/btn"
                                                             >
                                                                 <Minus className="w-4 h-4 text-gray-600 group-hover/btn:text-red-500 transition-colors duration-200" />
@@ -242,7 +269,9 @@ const AddToCart = () => {
                                                             <motion.button
                                                                 whileHover={{ scale: 1.1 }}
                                                                 whileTap={{ scale: 0.9 }}
-                                                                onClick={() => handleQuantityChange(item.product, item.quantity + 1)}
+                                                                onClick={() =>
+                                                                    handleQuantityChange(item.product, item.quantity + 1)
+                                                                }
                                                                 className="w-10 h-10 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors duration-200 group/btn"
                                                             >
                                                                 <Plus className="w-4 h-4 text-gray-600 group-hover/btn:text-green-500 transition-colors duration-200" />

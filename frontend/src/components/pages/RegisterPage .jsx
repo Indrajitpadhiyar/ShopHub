@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react'
+import { register, clearErrors } from '../../actions/auth.action' // Import register action
+import { useNavigate } from 'react-router-dom'
+import toast from 'react-hot-toast'
 
 const RegisterPage = () => {
     const [formData, setFormData] = useState({
@@ -11,7 +15,15 @@ const RegisterPage = () => {
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [floatingShapes, setFloatingShapes] = useState([])
+    const [termsAccepted, setTermsAccepted] = useState(false)
+    const [loading, setLoading] = useState(false)
 
+    // Redux hooks
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
+    const { isAuthenticated, loading: authLoading, error } = useSelector((state) => state.auth)
+
+    // Floating shapes effect
     useEffect(() => {
         const shapes = Array.from({ length: 20 }, (_, i) => ({
             id: i,
@@ -24,6 +36,22 @@ const RegisterPage = () => {
         setFloatingShapes(shapes)
     }, [])
 
+    // Handle authentication success
+    useEffect(() => {
+        if (isAuthenticated) {
+            toast.success('Registration successful! Please log in.')
+            navigate('/login') // Redirect to login after successful registration
+        }
+    }, [isAuthenticated, navigate])
+
+    // Handle errors
+    useEffect(() => {
+        if (error) {
+            toast.error(error)
+            dispatch(clearErrors()) // Clear errors after displaying
+        }
+    }, [error, dispatch])
+
     const handleChange = (e) => {
         setFormData({
             ...formData,
@@ -31,8 +59,35 @@ const RegisterPage = () => {
         })
     }
 
-    const handleSubmit = () => {
-        console.log('Register submitted:', formData)
+    const handleSubmit = async (e) => {
+        e.preventDefault()
+        setLoading(true)
+
+        // Basic form validation
+        if (formData.password !== formData.confirmPassword) {
+            toast.error('Passwords do not match')
+            setLoading(false)
+            return
+        }
+        if (!termsAccepted) {
+            toast.error('Please accept the Terms of Service and Privacy Policy')
+            setLoading(false)
+            return
+        }
+        if (formData.password.length < 6) {
+            toast.error('Password must be at least 6 characters long')
+            setLoading(false)
+            return
+        }
+
+        try {
+            // Dispatch register action
+            await dispatch(register(formData.fullName, formData.email, formData.password))
+        } catch (err) {
+            // Error will be handled by the useEffect above
+        } finally {
+            setLoading(false)
+        }
     }
 
     return (
@@ -69,8 +124,8 @@ const RegisterPage = () => {
                             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl mb-4 shadow-lg transform transition-all duration-300 hover:scale-110 hover:rotate-6">
                                 <img
                                     src="/bagifyLogo.png"
-                                    className="rounded"
-                                    alt=""
+                                    className="rounded w-8 h-8"
+                                    alt="Logo"
                                 />
                             </div>
                             <h1 className="text-4xl font-bold text-gray-800 mb-2">Create Account</h1>
@@ -78,7 +133,7 @@ const RegisterPage = () => {
                         </div>
 
                         {/* Form */}
-                        <div className="space-y-5">
+                        <form onSubmit={handleSubmit} className="space-y-5">
                             {/* Full Name input */}
                             <div className="relative group">
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
@@ -90,7 +145,9 @@ const RegisterPage = () => {
                                         value={formData.fullName}
                                         onChange={handleChange}
                                         placeholder="Enter your full name"
-                                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300"
+                                        required
+                                        disabled={authLoading || loading}
+                                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                 </div>
                             </div>
@@ -106,7 +163,9 @@ const RegisterPage = () => {
                                         value={formData.email}
                                         onChange={handleChange}
                                         placeholder="Enter your email"
-                                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300"
+                                        required
+                                        disabled={authLoading || loading}
+                                        className="w-full pl-12 pr-4 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                 </div>
                             </div>
@@ -122,11 +181,15 @@ const RegisterPage = () => {
                                         value={formData.password}
                                         onChange={handleChange}
                                         placeholder="Create a password"
-                                        className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300"
+                                        required
+                                        disabled={authLoading || loading}
+                                        className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                     <button
+                                        type="button"
                                         onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-all duration-300 hover:scale-110"
+                                        disabled={authLoading || loading}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                     </button>
@@ -144,11 +207,15 @@ const RegisterPage = () => {
                                         value={formData.confirmPassword}
                                         onChange={handleChange}
                                         placeholder="Confirm your password"
-                                        className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300"
+                                        required
+                                        disabled={authLoading || loading}
+                                        className="w-full pl-12 pr-12 py-3 bg-gray-50 border-2 border-gray-200 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                                     />
                                     <button
+                                        type="button"
                                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-all duration-300 hover:scale-110"
+                                        disabled={authLoading || loading}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-blue-500 transition-all duration-300 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                                     </button>
@@ -159,7 +226,10 @@ const RegisterPage = () => {
                             <div className="flex items-start gap-2 text-sm pt-2">
                                 <input
                                     type="checkbox"
-                                    className="w-4 h-4 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all"
+                                    checked={termsAccepted}
+                                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                                    className="w-4 h-4 mt-0.5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    disabled={authLoading || loading}
                                 />
                                 <span className="text-gray-600">
                                     I agree to the{' '}
@@ -175,13 +245,14 @@ const RegisterPage = () => {
 
                             {/* Submit button */}
                             <button
-                                onClick={handleSubmit}
-                                className="w-full py-3.5 mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 flex items-center justify-center gap-2 group"
+                                type="submit"
+                                disabled={authLoading || loading || !formData.fullName || !formData.email || !formData.password || !formData.confirmPassword || !termsAccepted}
+                                className="w-full py-3.5 mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:scale-100"
                             >
-                                <span>Create Account</span>
-                                <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
+                                <span>{authLoading || loading ? 'Creating Account...' : 'Create Account'}</span>
+                                <ArrowRight className={`w-5 h-5 transition-transform duration-300 group-hover:translate-x-1 ${authLoading || loading ? 'animate-spin' : ''}`} />
                             </button>
-                        </div>
+                        </form>
 
                         {/* Divider */}
                         <div className="flex items-center gap-4 my-8">
@@ -199,7 +270,8 @@ const RegisterPage = () => {
                             ].map((social) => (
                                 <button
                                     key={social.name}
-                                    className={`py-3 bg-gradient-to-br ${social.color} text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1`}
+                                    disabled={authLoading || loading}
+                                    className={`py-3 bg-gradient-to-br ${social.color} text-white text-sm font-medium rounded-xl shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:scale-100`}
                                 >
                                     {social.name}
                                 </button>
