@@ -38,13 +38,17 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "user",
   },
-  addToCart:[
+  addToCart: [
     {
       productId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product",
-      }
-    }
+      },
+      quantity: {
+        type: Number,
+        default: 1,
+      },
+    },
   ],
   resetPasswordToken: String,
   resetPasswordExpire: Date,
@@ -61,12 +65,12 @@ userSchema.methods.getJWTToken = function () {
   return jwt.sign({ id: this._id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRE,
   });
-}
+};
 
 // Compare user password
-userSchema.methods.comparePassword = async function(enteredPassword) {
-    return await bcrypt.compare(enteredPassword, this.password);
-}
+userSchema.methods.comparePassword = async function (enteredPassword) {
+  return await bcrypt.compare(enteredPassword, this.password);
+};
 
 userSchema.methods.getResetPasswordToken = function () {
   // generate token
@@ -79,9 +83,9 @@ userSchema.methods.getResetPasswordToken = function () {
     .update(resetToken)
     .digest("hex");
 
-    this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
 
-    return resetToken;
-}
+  return resetToken;
+};
 export const User = mongoose.model("User", userSchema);
 export default User;

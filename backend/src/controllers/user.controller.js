@@ -290,3 +290,15 @@ export const removeFromCart = catchAsyncError(async (req, res, next) => {
     cart: user.addToCart,
   });
 });
+
+export const getCart = catchAsyncError(async (req, res, next) => {
+  const user = await User.findById(req.user.id).populate("addToCart.productId");
+
+  if (!user) {
+    return next(new ErrorHandler("User not Found", 404));
+  }
+  res.status(200).json({
+    success: true,
+    cart: user.addToCart,
+  });
+});

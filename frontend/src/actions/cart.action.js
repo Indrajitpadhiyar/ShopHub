@@ -31,7 +31,6 @@ export const addToCart =
     try {
       dispatch({ type: ADD_TO_CART_REQUEST });
 
-      // Get product details
       const { data } = await axios.get(`/api/v1/product/${productId}`, {
         headers: { Authorization: `Bearer ${getAuthToken()}` },
       });
@@ -50,7 +49,6 @@ export const addToCart =
         originalPrice: product.originalPrice || product.price,
       };
 
-      // Send cart item to server
       await axios.post(
         "/api/v1/cart",
         { productId, quantity },
@@ -61,6 +59,10 @@ export const addToCart =
         type: ADD_TO_CART_SUCCESS,
         payload: cartItem,
       });
+
+      // Update localStorage
+      const state = store.getState();
+      localStorage.setItem("cartItems", JSON.stringify(state.cart.cartItems));
 
       return Promise.resolve("Product added to cart successfully");
     } catch (error) {
@@ -171,14 +173,45 @@ export const getCartItems = () => async (dispatch) => {
   try {
     dispatch({ type: GET_CART_ITEMS_REQUEST });
 
+    // Fetch cart items from the backend
     const { data } = await axios.get("/api/v1/cart", {
       headers: { Authorization: `Bearer ${getAuthToken()}` },
     });
 
+    // Transform backend cart items to frontend format
+    const cartItems = await Promise.all(
+      (data.addToCart || []).map(async (item) => {
+        // Fetch product details for each productId
+        const { data: productData } = await axios.get(
+          `/api/v1/product/${item.productId}`,
+          {
+            headers: { Authorization: `Bearer ${getAuthToken()}` },
+          }
+        );
+
+        const product = productData.product;
+
+        return {
+          product: product._id,
+          name: product.name,
+          price: product.price,
+          image:
+            product.images?.[0]?.url ||
+            "https://via.placeholder.com/400x300?text=No+Image",
+          stock: product.stock,
+          quantity: item.quantity || 1, // Use quantity from backend if available, else default to 1
+          originalPrice: product.originalPrice || product.price,
+        };
+      })
+    );
+
     dispatch({
       type: GET_CART_ITEMS_SUCCESS,
-      payload: data.cartItems || [],
+      payload: cartItems,
     });
+
+    // Save to localStorage
+    localStorage.setItem("cartItems", JSON.stringify(cartItems));
 
     return Promise.resolve("Cart items loaded successfully");
   } catch (error) {

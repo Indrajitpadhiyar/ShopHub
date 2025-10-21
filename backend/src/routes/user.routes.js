@@ -14,6 +14,7 @@ import {
   updateUserRole,
   addToCart,
   removeFromCart,
+  getCart,
 } from "../controllers/user.controller.js";
 import {
   isAuthenticated,
@@ -47,8 +48,9 @@ userRouter
 
 // Cart Routes
 userRouter
-  .route("/cart")
+  .route("/addToCart")
   .post(isAuthenticated, addToCart)
-  .delete(isAuthenticated, removeFromCart);
+  .delete(isAuthenticated, removeFromCart)
+  .get(isAuthenticated, getCart);
 
 export default userRouter;
