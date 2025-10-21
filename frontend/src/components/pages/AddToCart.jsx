@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
     Trash2,
@@ -12,48 +12,53 @@ import {
     RotateCcw,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { removeFromCart, updateCartQuantity } from "../../actions/cart.action";
+import { removeFromCart, updateCartQuantity, getCartItems } from "../../actions/cart.action";
 import toast from "react-hot-toast";
 import Header from "../layouts/Header";
-import { useNavigate } from "react-router-dom"; // Import useNavigate
+import { useNavigate } from "react-router-dom";
 
 const AddToCart = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate(); // Initialize useNavigate
-    const { cartItems } = useSelector((state) => state.cart);
-    const { isAuthenticated } = useSelector((state) => state.auth); // Access auth state
-    const [localCart, setLocalCart] = useState([]);
+    const navigate = useNavigate();
+    const { cartItems, error } = useSelector((state) => state.cart);
+    const { isAuthenticated } = useSelector((state) => state.auth);
 
-    // Check authentication on component mount
+    // Fetch cart items on mount if authenticated
     useEffect(() => {
         if (!isAuthenticated) {
             toast.error("Please log in to view your cart");
-            navigate("/login"); // Redirect to login page if not authenticated
+            navigate("/login");
         } else {
-            setLocalCart(cartItems || []);
+            dispatch(getCartItems()).catch((err) => {
+                toast.error(err);
+            });
         }
-    }, [cartItems, isAuthenticated, navigate]);
+    }, [dispatch, isAuthenticated, navigate]);
+
+    // Handle errors
+    useEffect(() => {
+        if (error) {
+            toast.error(error);
+            dispatch({ type: "CLEAR_CART_ERRORS" });
+        }
+    }, [error, dispatch]);
 
     const handleRemoveItem = (productId) => {
-        dispatch(removeFromCart(productId));
-        toast.success("Item removed from cart");
+        dispatch(removeFromCart(productId))
+            .then(() => toast.success("Item removed from cart"))
+            .catch((err) => toast.error(err));
     };
 
     const handleQuantityChange = (productId, newQuantity) => {
         if (newQuantity < 1) return;
 
-        dispatch(updateCartQuantity(productId, newQuantity));
-        setLocalCart((prev) =>
-            prev.map((item) =>
-                item.product === productId
-                    ? { ...item, quantity: newQuantity }
-                    : item
-            )
-        );
+        dispatch(updateCartQuantity(productId, newQuantity))
+            .then(() => toast.success("Quantity updated"))
+            .catch((err) => toast.error(err));
     };
 
     const calculateTotal = () => {
-        return localCart.reduce((total, item) => total + item.price * item.quantity, 0);
+        return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
     };
 
     const calculateDiscount = () => {
@@ -94,13 +99,11 @@ const AddToCart = () => {
         },
     };
 
-    // If not authenticated, return null (since redirection is handled in useEffect)
     if (!isAuthenticated) {
         return null;
     }
 
-    // Rest of the component remains the same
-    if (!localCart || localCart.length === 0) {
+    if (!cartItems || cartItems.length === 0) {
         return (
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
                 <Header />
@@ -146,7 +149,7 @@ const AddToCart = () => {
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        onClick={() => window.history.back()}
+                        onClick={() => navigate("/products")}
                         className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-3"
                     >
                         <ShoppingBag className="w-5 h-5" />
@@ -163,7 +166,6 @@ const AddToCart = () => {
             <Header />
 
             <div className="max-w-7xl mx-auto px-4 py-8">
-                {/* Header */}
                 <motion.div
                     initial={{ opacity: 0, y: -30 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -174,7 +176,7 @@ const AddToCart = () => {
                             Shopping Cart
                         </h1>
                         <p className="text-gray-600">
-                            {localCart.length} {localCart.length === 1 ? "item" : "items"} in your cart
+                            {cartItems.length} {cartItems.length === 1 ? "item" : "items"} in your cart
                         </p>
                     </div>
 
@@ -190,7 +192,6 @@ const AddToCart = () => {
                 </motion.div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    {/* Cart Items */}
                     <div className="lg:col-span-2">
                         <motion.div
                             variants={containerVariants}
@@ -199,7 +200,7 @@ const AddToCart = () => {
                             className="space-y-4"
                         >
                             <AnimatePresence>
-                                {localCart.map((item, index) => (
+                                {cartItems.map((item, index) => (
                                     <motion.div
                                         key={item.product}
                                         variants={itemVariants}
@@ -211,7 +212,6 @@ const AddToCart = () => {
                                     >
                                         <div className="p-6">
                                             <div className="flex gap-6">
-                                                {/* Product Image */}
                                                 <motion.div
                                                     whileHover={{ scale: 1.05 }}
                                                     className="flex-shrink-0"
@@ -226,7 +226,6 @@ const AddToCart = () => {
                                                     />
                                                 </motion.div>
 
-                                                {/* Product Details */}
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className="text-xl font-semibold text-gray-900 mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">
                                                         {item.name}
@@ -243,7 +242,6 @@ const AddToCart = () => {
                                                         )}
                                                     </div>
 
-                                                    {/* Quantity Controls */}
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-3">
                                                             <motion.button
@@ -278,7 +276,6 @@ const AddToCart = () => {
                                                             </motion.button>
                                                         </div>
 
-                                                        {/* Remove Button */}
                                                         <motion.button
                                                             whileHover={{ scale: 1.05 }}
                                                             whileTap={{ scale: 0.95 }}
@@ -293,7 +290,6 @@ const AddToCart = () => {
                                             </div>
                                         </div>
 
-                                        {/* Subtle background animation */}
                                         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
                                     </motion.div>
                                 ))}
@@ -301,7 +297,6 @@ const AddToCart = () => {
                         </motion.div>
                     </div>
 
-                    {/* Order Summary */}
                     <div className="lg:col-span-1">
                         <motion.div
                             initial={{ opacity: 0, x: 50 }}
@@ -310,7 +305,6 @@ const AddToCart = () => {
                             className="sticky top-8"
                         >
                             <div className="bg-white rounded-3xl shadow-xl border border-gray-100 overflow-hidden">
-                                {/* Summary Header */}
                                 <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-6">
                                     <h2 className="text-2xl font-bold text-white mb-2">
                                         Order Summary
@@ -320,10 +314,9 @@ const AddToCart = () => {
                                     </p>
                                 </div>
 
-                                {/* Summary Details */}
                                 <div className="p-6 space-y-4">
                                     <div className="flex justify-between text-gray-600">
-                                        <span>Subtotal ({localCart.length} items)</span>
+                                        <span>Subtotal ({cartItems.length} items)</span>
                                         <span>₹{calculateTotal().toLocaleString("en-IN")}</span>
                                     </div>
 
@@ -344,7 +337,6 @@ const AddToCart = () => {
                                         <span>₹{calculateFinalTotal().toLocaleString("en-IN")}</span>
                                     </div>
 
-                                    {/* Trust Badges */}
                                     <div className="flex justify-center gap-4 py-4">
                                         <div className="flex items-center gap-2 text-sm text-gray-500">
                                             <Shield className="w-4 h-4 text-green-500" />
@@ -360,10 +352,10 @@ const AddToCart = () => {
                                         </div>
                                     </div>
 
-                                    {/* Checkout Button */}
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
+                                        onClick={() => navigate("/checkout")}
                                         className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white py-4 rounded-2xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-3"
                                     >
                                         <CreditCard className="w-5 h-5" />
@@ -371,11 +363,10 @@ const AddToCart = () => {
                                         <ArrowRight className="w-5 h-5" />
                                     </motion.button>
 
-                                    {/* Continue Shopping */}
                                     <motion.button
                                         whileHover={{ scale: 1.02 }}
                                         whileTap={{ scale: 0.98 }}
-                                        onClick={() => window.history.back()}
+                                        onClick={() => navigate("/products")}
                                         className="w-full border-2 border-gray-300 text-gray-700 py-4 rounded-2xl font-semibold hover:border-blue-400 hover:text-blue-600 transition-all duration-300 flex items-center justify-center gap-3"
                                     >
                                         <RotateCcw className="w-5 h-5" />
@@ -384,7 +375,6 @@ const AddToCart = () => {
                                 </div>
                             </div>
 
-                            {/* Security Note */}
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}

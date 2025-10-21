@@ -32,7 +32,7 @@ const LoginPage = () => {
   useEffect(() => {
     if (isAuthenticated) {
       toast.success("Login successful!");
-      navigate("/cart"); // Redirect to cart page after login
+      navigate("/addToCart"); // Redirect to cart page after login
     }
     if (error) {
       toast.error(error);

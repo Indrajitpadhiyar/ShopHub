@@ -12,39 +12,43 @@ import {
   getAllUsers,
   deleteUser,
   updateUserRole,
+  addToCart,
+  removeFromCart,
 } from "../controllers/user.controller.js";
 import {
   isAuthenticated,
   authorizeRoles,
 } from "../middlewares/auth.middlewares.js";
-import { get } from "http";
 
 const userRouter = express.Router();
 
-userRouter.route("/register").post(registerUser);
+userRouter.post("/register", registerUser);
+userRouter.post("/login", loginUser);
+userRouter.post("/password/forgot", forgotPassword);
+userRouter.put("/password/reset/:token", resetPassword);
+userRouter.get("/logout", logout);
 
-userRouter.route("/login").post(loginUser);
+userRouter.get("/me", isAuthenticated, getUserDetails);
+userRouter.put("/password/update", isAuthenticated, updatePassword);
+userRouter.put("/me/update", isAuthenticated, updateProfile);
 
-userRouter.route("/password/forgot").post(forgotPassword);
-
-userRouter.route("/password/reset/:token").put(resetPassword);
-
-userRouter.route("/logout").get(logout);
-
-userRouter.route("/me").get(isAuthenticated, getUserDetails);
-
-userRouter.route("/password/update").put(isAuthenticated, updatePassword);
-
-userRouter.route("/me/update").put(isAuthenticated, updateProfile);
-
-userRouter
-  .route("/admin/users")
-  .get(isAuthenticated, authorizeRoles("admin"), getAllUsers);
+userRouter.get(
+  "/admin/users",
+  isAuthenticated,
+  authorizeRoles("admin"),
+  getAllUsers
+);
 
 userRouter
   .route("/admin/user/:id")
   .get(isAuthenticated, authorizeRoles("admin"), getSigleUser)
   .put(isAuthenticated, authorizeRoles("admin"), updateUserRole)
   .delete(isAuthenticated, authorizeRoles("admin"), deleteUser);
+
+// Cart Routes
+userRouter
+  .route("/cart")
+  .post(isAuthenticated, addToCart)
+  .delete(isAuthenticated, removeFromCart);
 
 export default userRouter;

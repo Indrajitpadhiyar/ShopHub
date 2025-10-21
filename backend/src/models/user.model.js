@@ -38,6 +38,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "user",
   },
+  addToCart:[
+    {
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      }
+    }
+  ],
   resetPasswordToken: String,
   resetPasswordExpire: Date,
 });

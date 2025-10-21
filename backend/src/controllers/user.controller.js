@@ -237,3 +237,56 @@ export const deleteUser = catchAsyncError(async (req, res, next) => {
     message: "User deleted successfully",
   });
 });
+
+export const addToCart = catchAsyncError(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+  const { productId } = req.body;
+
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  // Check if the product is already in the cart
+  const isProductInCart = user.addToCart.find(
+    (item) => item.productId.toString() === productId
+  );
+
+  if (isProductInCart) {
+    return next(new ErrorHandler("Product is already in cart", 400));
+  }
+
+  user.addToCart.push({ productId });
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Product added to cart successfully",
+  });
+});
+
+export const removeFromCart = catchAsyncError(async (req, res, next) => {
+  const user = await User.findById(req.user.id);
+  const { productId } = req.body;
+
+  if (!user) {
+    return next(new ErrorHandler("User not found", 404));
+  }
+
+  const initialLength = user.addToCart.length;
+
+  user.addToCart = user.addToCart.filter(
+    (item) => item.productId.toString() !== productId.toString()
+  );
+
+  if (user.addToCart.length === initialLength) {
+    return next(new ErrorHandler("Product not found in cart", 404));
+  }
+
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Product removed from cart successfully",
+    cart: user.addToCart,
+  });
+});
