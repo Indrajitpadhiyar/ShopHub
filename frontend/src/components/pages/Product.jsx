@@ -8,32 +8,33 @@ import { motion } from "framer-motion";
 
 const Product = () => {
   const dispatch = useDispatch();
-  const { loading, error, products } = useSelector((state) => state.products);
+  const { loading, error, products } = useSelector((state) => state.products || { products: [], loading: false, error: null });
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("default");
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   useEffect(() => {
-    dispatch(getProducts());
+    dispatch(getProducts())
+      .catch((err) => {
+        const errorMessage = err.message || "Failed to fetch products";
+        toast.error(errorMessage);
+        console.error("Get products error:", err); // Debug log
+      });
   }, [dispatch]);
 
   useEffect(() => {
     if (error) {
       toast.error(error || "Something went wrong while fetching products");
+      console.error("Redux error state:", error); // Debug log
     }
   }, [error]);
 
   // Filter and sort products
   useEffect(() => {
-    if (!products || products.length === 0) {
-      setFilteredProducts([]);
-      return;
-    }
-
-    let result = [...products];
+    let result = products ? [...products] : [];
 
     // Filter by category
-    if (selectedCategory !== "all") {
+    if (selectedCategory !== "all" && products) {
       result = result.filter(
         (product) => product.category?.toLowerCase() === selectedCategory.toLowerCase()
       );
@@ -61,10 +62,10 @@ const Product = () => {
   }, [products, selectedCategory, sortBy]);
 
   // Get unique categories
-  const categories = ["all", ...new Set(products?.map((p) => p.category?.toLowerCase()).filter(Boolean) || [])];
+  const categories = ["all", ...new Set((products || []).map((p) => p.category?.toLowerCase()).filter(Boolean) || [])];
 
   return (
-    <div className="w-full">
+    <div className="w-full min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 py-6 px-4 sm:px-6 lg:px-8">
       {/* Header with gradient background */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
@@ -90,12 +91,12 @@ const Product = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
-          className="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-gray-100"
+          className="bg-white rounded-2xl shadow-lg p-4 sm:p-6 mb-8 border border-gray-100"
         >
-          <div className="flex flex-col lg:flex-row gap-6 lg:items-end">
+          <div className="flex flex-col lg:flex-row gap-4 lg:items-end">
             {/* Category Filter */}
             <div className="flex-1">
-              <label className="block text-sm font-bold text-gray-700 mb-3">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 Category
               </label>
               <div className="flex flex-wrap gap-2">
@@ -105,9 +106,9 @@ const Product = () => {
                     onClick={() => setSelectedCategory(category)}
                     whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 ${selectedCategory === category
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg shadow-blue-300"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-md"
+                    className={`px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all duration-300 ${selectedCategory === category
+                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 hover:shadow-sm"
                       }`}
                   >
                     {category.charAt(0).toUpperCase() + category.slice(1)}
@@ -117,15 +118,15 @@ const Product = () => {
             </div>
 
             {/* Sort Dropdown */}
-            <div className="lg:w-72">
-              <label className="block text-sm font-bold text-gray-700 mb-3">
+            <div className="w-full lg:w-72">
+              <label className="block text-sm font-bold text-gray-700 mb-2">
                 Sort By
               </label>
               <div className="relative">
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full px-5 py-3 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-100 focus:outline-none transition-all duration-200 bg-white text-sm font-medium appearance-none cursor-pointer"
+                  className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-100 focus:outline-none transition-all duration-200 bg-white text-sm font-medium appearance-none cursor-pointer"
                 >
                   <option value="default">Default</option>
                   <option value="price-low">Price: Low to High</option>
@@ -133,7 +134,7 @@ const Product = () => {
                   <option value="rating">Highest Rated</option>
                   <option value="name">Name: A to Z</option>
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
                   <svg className="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                     <path d="M19 9l-7 7-7-7" />
                   </svg>
@@ -154,7 +155,7 @@ const Product = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.3 }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6"
         >
           {filteredProducts.map((p, index) => (
             <motion.div
@@ -180,7 +181,7 @@ const Product = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl shadow-xl p-12 text-center border border-blue-100"
+          className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl shadow-xl p-6 sm:p-12 text-center border border-blue-100"
         >
           <motion.div
             animate={{
@@ -192,21 +193,21 @@ const Product = () => {
               repeat: Infinity,
               ease: "easeInOut",
             }}
-            className="text-7xl mb-6"
+            className="text-5xl sm:text-7xl mb-4"
           >
             📦
           </motion.div>
-          <h3 className="text-2xl font-bold text-gray-800 mb-3">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-800 mb-2">
             No Products Found
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-gray-600 mb-4">
             We couldn't find any products in this category.
           </p>
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setSelectedCategory("all")}
-            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-8 py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
+            className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-xl font-semibold shadow-lg hover:shadow-xl transition-all duration-300"
           >
             View All Products
           </motion.button>

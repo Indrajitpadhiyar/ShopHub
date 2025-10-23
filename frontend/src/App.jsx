@@ -6,7 +6,8 @@ import Loader from './components/layouts/Loader';
 import RegisterPage from './components/pages/RegisterPage ';
 import ProductDitails from './components/pages/ProductDitails';
 import AllProduct from './components/pages/AllProduct';
-import AddToCart from "./components/pages/AddToCart";
+// import AddToCart from "./components/pages/AddToCart";
+import Cart from './components/ui/Cart';
 import './app.css';
 
 const App = () => {
@@ -16,8 +17,8 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/loading" element={<Loader />} />
         <Route path="/product/:id" element={<ProductDitails />} />
-        <Route path="/allproduct" element={<AllProduct />} />
-        <Route path="/AddToCart" element={<AddToCart />} />
+        <Route path="/Allproducts" element={<AllProduct />} />
+        <Route path="/AddToCart" element={<Cart />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
       </Routes>

@@ -171,7 +171,7 @@ const Header = () => {
 
             {/* All Products */}
             <a
-              href="/AllProduct"
+              href="/AllProducts"
               className="font-semibold text-gray-700 hover:text-blue-600 transition-all duration-200 py-2.5 px-4 rounded-lg hover:bg-blue-50"
             >
               ALL PRODUCTS

@@ -1,4 +1,4 @@
-// src/components/ProductDetails.js
+// src/components/ProductDetails.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -18,12 +18,15 @@ import {
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
 import { getProducts } from "../../actions/product.action";
+import { addToCart } from "../../actions/cart.action";
 import Loader from "../layouts/Loader";
 import Header from "../layouts/Header";
 import Footer from "../layouts/Footer";
 import ReviewCard from "../layouts/ReviewCard";
+import AddToCartModal from "../ui/AddToCartModal";
+import toast from "react-hot-toast";
 
-// Sub-component: Image Gallery
+// Sub-component: Image Gallery (unchanged)
 const ImageGallery = ({ product, selectedImage, setSelectedImage, isZoomed, setIsZoomed, isLiked, setIsLiked }) => {
   const imageUrl = product.images?.[selectedImage]?.url || "https://via.placeholder.com/500x500";
   const navigate = useNavigate();
@@ -209,7 +212,10 @@ const ImageGallery = ({ product, selectedImage, setSelectedImage, isZoomed, setI
 };
 
 // Sub-component: Product Info
-const ProductInfo = ({ product, quantity, setQuantity, addToCart }) => {
+const ProductInfo = ({ product, quantity, setQuantity, isAuthenticated, navigate, dispatch }) => {
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+
   const handleIncrement = () => {
     if (quantity < product.stock) {
       setQuantity(quantity + 1);
@@ -229,170 +235,231 @@ const ProductInfo = ({ product, quantity, setQuantity, addToCart }) => {
     }
   };
 
+  const handleAddToCart = () => {
+    if (!isAuthenticated) {
+      toast.error("Please log in to add items to cart");
+      navigate("/login");
+      return;
+    }
+    if (product.stock === 0) {
+      toast.error("Product is out of stock");
+      return;
+    }
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmAddToCart = async () => {
+    setIsAdding(true);
+    try {
+      await dispatch(addToCart(product._id, quantity));
+      setShowConfirmation(false);
+      toast.success("Added to cart successfully!", {
+        style: { borderRadius: "10px", background: "#10b981", color: "#fff" },
+      });
+    } catch (error) {
+      console.error("Add to cart error:", error);
+      toast.error("Failed to add to cart", {
+        style: { borderRadius: "10px", background: "#ef4444", color: "#fff" },
+      });
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   return (
-    <motion.div
-      className="space-y-6"
-      initial={{ opacity: 0, x: 40 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: 0.3, duration: 0.6 }}
-    >
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-        <p className="text-indigo-600 font-semibold text-sm uppercase tracking-wider">Premium Quality</p>
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">{product.name}</h1>
-      </motion.div>
-
+    <>
       <motion.div
-        className="flex items-center gap-4 mb-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
+        className="space-y-6"
+        initial={{ opacity: 0, x: 40 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ delay: 0.3, duration: 0.6 }}
       >
-        <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 rounded-full">
-          {[...Array(5)].map((_, i) => (
-            <Star
-              key={i}
-              size={18}
-              className={`${i < Math.floor(product.ratings || 0) ? "text-white fill-white" : "text-white/40"}`}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+          <p className="text-indigo-600 font-semibold text-sm uppercase tracking-wider">Premium Quality</p>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight line-clamp-3">
+            {product.name}
+          </h1>
+        </motion.div>
+
+        <motion.div
+          className="flex items-center gap-4 mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
+          <div className="flex items-center bg-gradient-to-r from-yellow-400 to-orange-400 px-4 py-2 rounded-full">
+            {[...Array(5)].map((_, i) => (
+              <Star
+                key={i}
+                size={18}
+                className={`${i < Math.floor(product.ratings || 0) ? "text-white fill-white" : "text-white/40"}`}
+              />
+            ))}
+            <span className="ml-2 text-white font-bold">{product.ratings || 0}</span>
+          </div>
+          <span className="text-gray-600 font-medium">({product.numOfReviews || 0} Reviews)</span>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6"
+        >
+          <p className="text-gray-700 leading-relaxed text-lg">{product.description}</p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.7 }}
+          className="space-y-4"
+        >
+          <div className="flex items-baseline gap-4">
+            <span className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+              ₹{product.price?.toLocaleString("en-IN") || "0"}
+            </span>
+            <span className="text-2xl text-gray-400 line-through">
+              ₹{((product.price || 0) * 1.3).toLocaleString("en-IN")}
+            </span>
+          </div>
+
+          <motion.p
+            className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm ${product.stock > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
+              }`}
+            animate={{ scale: [1, 1.05, 1] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            {product.stock > 0 ? `✓ In Stock (${product.stock} available)` : "✗ Out of Stock"}
+          </motion.p>
+        </motion.div>
+
+        {/* Quantity Selector */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.75 }}
+          className="flex items-center gap-6"
+        >
+          <span className="text-lg font-semibold text-gray-700">Quantity:</span>
+          <div className="flex items-center gap-3">
+            <motion.button
+              whileHover={{ scale: 1.1, backgroundColor: "#4f46e5" }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleDecrement}
+              disabled={quantity <= 1}
+              className="bg-indigo-100 text-indigo-600 p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Decrease quantity"
+            >
+              <Minus size={20} />
+            </motion.button>
+
+            <motion.input
+              type="number"
+              value={quantity}
+              onChange={handleQuantityChange}
+              min="1"
+              max={product.stock}
+              className="w-20 text-center text-lg font-bold text-gray-900 border-2 border-indigo-200 rounded-xl py-2 focus:outline-none focus:border-indigo-500"
+              aria-label="Product quantity"
             />
+
+            <motion.button
+              whileHover={{ scale: 1.1, backgroundColor: "#4f46e5" }}
+              whileTap={{ scale: 0.9 }}
+              onClick={handleIncrement}
+              disabled={quantity >= product.stock}
+              className="bg-indigo-100 text-indigo-600 p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              aria-label="Increase quantity"
+            >
+              <Plus size={20} />
+            </motion.button>
+          </div>
+
+          <motion.span
+            className="text-sm text-gray-500"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+          >
+            Max: {product.stock}
+          </motion.span>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="flex gap-4"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(79, 70, 229, 0.3)" }}
+            whileTap={{ scale: 0.95 }}
+            onClick={handleAddToCart}
+            disabled={product.stock === 0}
+            className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-8 rounded-2xl flex items-center justify-center gap-3 font-bold text-lg shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            aria-label={`Add ${quantity} items to cart`}
+          >
+            <ShoppingCart size={24} />
+            Add to Cart ({quantity})
+          </motion.button>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.9 }}
+          className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-200"
+        >
+          {[
+            { icon: TruckIcon, text: "Free Delivery" },
+            { icon: ShieldCheck, text: "Secure Payment" },
+            { icon: RefreshCw, text: "Easy Returns" },
+          ].map((feature, i) => (
+            <motion.div
+              key={i}
+              whileHover={{ y: -5 }}
+              className="flex flex-col items-center text-center gap-2"
+            >
+              <div className="bg-indigo-100 p-3 rounded-full">
+                <feature.icon size={24} className="text-indigo-600" />
+              </div>
+              <span className="text-sm font-medium text-gray-700">{feature.text}</span>
+            </motion.div>
           ))}
-          <span className="ml-2 text-white font-bold">{product.ratings || 0}</span>
-        </div>
-        <span className="text-gray-600 font-medium">({product.numOfReviews || 0} Reviews)</span>
+        </motion.div>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6 }}
-        className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-6"
-      >
-        <p className="text-gray-700 leading-relaxed text-lg">{product.description}</p>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.7 }}
-        className="space-y-4"
-      >
-        <div className="flex items-baseline gap-4">
-          <span className="text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-            ₹{product.price?.toLocaleString("en-IN") || "0"}
-          </span>
-          <span className="text-2xl text-gray-400 line-through">
-            ₹{((product.price || 0) * 1.3).toLocaleString("en-IN")}
-          </span>
-        </div>
-
-        <motion.p
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-semibold text-sm ${product.stock > 0 ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"
-            }`}
-          animate={{ scale: [1, 1.05, 1] }}
-          transition={{ duration: 2, repeat: Infinity }}
-        >
-          {product.stock > 0 ? `✓ In Stock (${product.stock} available)` : "✗ Out of Stock"}
-        </motion.p>
-      </motion.div>
-
-      {/* Quantity Selector */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.75 }}
-        className="flex items-center gap-6"
-      >
-        <span className="text-lg font-semibold text-gray-700">Quantity:</span>
-        <div className="flex items-center gap-3">
-          <motion.button
-            whileHover={{ scale: 1.1, backgroundColor: "#4f46e5" }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleDecrement}
-            disabled={quantity <= 1}
-            className="bg-indigo-100 text-indigo-600 p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            aria-label="Decrease quantity"
-          >
-            <Minus size={20} />
-          </motion.button>
-
-          <motion.input
-            type="number"
-            value={quantity}
-            onChange={handleQuantityChange}
-            min="1"
-            max={product.stock}
-            className="w-20 text-center text-lg font-bold text-gray-900 border-2 border-indigo-200 rounded-xl py-2 focus:outline-none focus:border-indigo-500"
-            aria-label="Product quantity"
-          />
-
-          <motion.button
-            whileHover={{ scale: 1.1, backgroundColor: "#4f46e5" }}
-            whileTap={{ scale: 0.9 }}
-            onClick={handleIncrement}
-            disabled={quantity >= product.stock}
-            className="bg-indigo-100 text-indigo-600 p-2 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            aria-label="Increase quantity"
-          >
-            <Plus size={20} />
-          </motion.button>
-        </div>
-
-        <motion.span
-          className="text-sm text-gray-500"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1 }}
-        >
-          Max: {product.stock}
-        </motion.span>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.8 }}
-        className="flex gap-4"
-      >
-        <motion.button
-          whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(79, 70, 229, 0.3)" }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => addToCart(product, quantity)}
-          disabled={product.stock === 0}
-          className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-4 px-8 rounded-2xl flex items-center justify-center gap-3 font-bold text-lg shadow-xl hover:shadow-2xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-          aria-label={`Add ${quantity} items to cart`}
-        >
-          <ShoppingCart size={24} />
-          Add to Cart ({quantity})
-        </motion.button>
-      </motion.div>
-
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.9 }}
-        className="grid grid-cols-3 gap-4 pt-6 border-t border-gray-200"
-      >
-        {[
-          { icon: TruckIcon, text: "Free Delivery" },
-          { icon: ShieldCheck, text: "Secure Payment" },
-          { icon: RefreshCw, text: "Easy Returns" },
-        ].map((feature, i) => (
+      {/* Animated Centered Modal */}
+      <AnimatePresence>
+        {showConfirmation && (
           <motion.div
-            key={i}
-            whileHover={{ y: -5 }}
-            className="flex flex-col items-center text-center gap-2"
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.7, opacity: 0 }}
+            transition={{ type: "spring", damping: 20, stiffness: 100 }}
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
           >
-            <div className="bg-indigo-100 p-3 rounded-full">
-              <feature.icon size={24} className="text-indigo-600" />
-            </div>
-            <span className="text-sm font-medium text-gray-700">{feature.text}</span>
+            <motion.div
+              className="bg-white rounded-2xl p-6 shadow-2xl max-w-md w-full"
+            >
+              <AddToCartModal
+                isOpen={showConfirmation}
+                onClose={() => setShowConfirmation(false)}
+                onConfirm={handleConfirmAddToCart}
+                product={product}
+                quantity={quantity}
+                isAdding={isAdding}
+              />
+            </motion.div>
           </motion.div>
-        ))}
-      </motion.div>
-    </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
 
-// Sub-component: Suggested Products
+// Sub-component: Suggested Products (unchanged)
 const SuggestedProducts = ({ suggestedProducts }) => {
   const navigate = useNavigate();
 
@@ -468,6 +535,7 @@ const ProductDetails = () => {
   const navigate = useNavigate();
 
   const { products, loading, error } = useSelector((state) => state.products || { products: [], loading: false, error: null });
+  const { isAuthenticated } = useSelector((state) => state.auth);
 
   useEffect(() => {
     if (!products.length) {
@@ -484,13 +552,6 @@ const ProductDetails = () => {
 
   const product = products.find((p) => p._id === id) || {};
   const suggestedProducts = products.filter((p) => p._id !== id).slice(0, 4);
-
-  const addToCart = (product, quantity) => {
-    // Placeholder for adding to cart; integrate with Redux or context
-    console.log(`Added ${quantity} of ${product.name} to cart`);
-    // You can integrate with your cart system here
-    // dispatch(addToCartAction(product, quantity));
-  };
 
   if (loading) {
     return <Loader />;
@@ -555,11 +616,13 @@ const ProductDetails = () => {
             product={product}
             quantity={quantity}
             setQuantity={setQuantity}
-            addToCart={addToCart}
+            isAuthenticated={isAuthenticated}
+            navigate={navigate}
+            dispatch={dispatch}
           />
         </motion.div>
 
-        <ReviewCard product={product} /> {/* Use the new ReviewCard component */}
+        <ReviewCard product={product} />
 
         {suggestedProducts.length > 0 && <SuggestedProducts suggestedProducts={suggestedProducts} />}
       </div>
