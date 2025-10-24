@@ -3,6 +3,7 @@ import logo from "../../assets/logo.png";
 import SearchBar from "./SearchBar";
 import ProfileIcon from "../ui/ProfileIcon";
 import { useNavigate } from "react-router-dom";
+import CartBadge from "../ui/CartBadge";
 
 const categories = [
   {
@@ -329,23 +330,15 @@ const Header = () => {
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200">3</span>
               <span className="ml-2 text-sm font-semibold">Wishlist</span>
             </a>
-            <a
-              href="/AddToCart"
-              className="p-2.5 rounded-full hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all duration-200 relative group block"
-            >
-              <svg
-                className="w-6 h-6 inline-block"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                viewBox="0 0 24 24"
-              >
-                <circle cx="9" cy="21" r="1" />
-                <circle cx="20" cy="21" r="1" />
-                <path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6" />
-              </svg>
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-blue-600 text-white text-xs rounded-full flex items-center justify-center font-bold shadow-lg">2</span>
-              <span className="ml-2 text-sm font-semibold">Cart</span>
+            (desktop)
+            <a href="/AddToCart" className="p-2.5 rounded-full hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all duration-200">
+              <CartBadge />
+            </a>
+
+            (mobile menu)
+            <a href="/AddToCart" className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-blue-50 text-gray-700 hover:text-blue-600 transition-all duration-200">
+              <CartBadge className="text-gray-700" />
+              <span className="font-semibold">Cart</span>
             </a>
             <div className="flex items-center gap-2 text-gray-700 hover:text-blue-600 font-semibold transition-all duration-200 py-2">
               <ProfileIcon />

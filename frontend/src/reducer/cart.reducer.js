@@ -1,144 +1,97 @@
+// src/redux/reducer/cart.reducer.js
 import {
   ADD_TO_CART_REQUEST,
   ADD_TO_CART_SUCCESS,
   ADD_TO_CART_FAIL,
-  REMOVE_CART_ITEM_REQUEST,
-  REMOVE_CART_ITEM_SUCCESS,
-  REMOVE_CART_ITEM_FAIL,
-  UPDATE_CART_QUANTITY_REQUEST,
-  UPDATE_CART_QUANTITY_SUCCESS,
-  UPDATE_CART_QUANTITY_FAIL,
-  CLEAR_CART_REQUEST,
+  FETCH_CART_REQUEST,
+  FETCH_CART_SUCCESS,
+  FETCH_CART_FAIL,
+  REMOVE_FROM_CART_SUCCESS,
+  UPDATE_QUANTITY_SUCCESS,
   CLEAR_CART_SUCCESS,
-  CLEAR_CART_FAIL,
-  GET_CART_ITEMS_REQUEST,
-  GET_CART_ITEMS_SUCCESS,
-  GET_CART_ITEMS_FAIL,
-  SAVE_SHIPPING_INFO,
   CLEAR_CART_ERRORS,
-} from "../constans/cart.constans.js";
+} from "../constans/cart.constans";
 
-// Load cart items from localStorage for initial state
+// Load cart from localStorage (fallback to empty array)
 const loadCartFromStorage = () => {
   try {
-    const cartItems = localStorage.getItem("cartItems");
-    return cartItems ? JSON.parse(cartItems) : [];
-  } catch (error) {
+    const data = localStorage.getItem("cartItems");
+    return data ? JSON.parse(data) : [];
+  } catch {
     return [];
-  }
-};
-
-const loadShippingInfoFromStorage = () => {
-  try {
-    const shippingInfo = localStorage.getItem("shippingInfo");
-    return shippingInfo ? JSON.parse(shippingInfo) : {};
-  } catch (error) {
-    return {};
   }
 };
 
 const initialState = {
   cartItems: loadCartFromStorage(),
-  shippingInfo: loadShippingInfoFromStorage(),
   loading: false,
   error: null,
 };
 
 export const cartReducer = (state = initialState, action) => {
   switch (action.type) {
+    // ── REQUESTS ───────────────────────────────────────
     case ADD_TO_CART_REQUEST:
-    case REMOVE_CART_ITEM_REQUEST:
-    case UPDATE_CART_QUANTITY_REQUEST:
-    case CLEAR_CART_REQUEST:
-    case GET_CART_ITEMS_REQUEST:
-      return {
-        ...state,
-        loading: true,
-        error: null,
-      };
+    case FETCH_CART_REQUEST:
+      return { ...state, loading: true, error: null };
 
-    case ADD_TO_CART_SUCCESS:
+    // ── ADD TO CART ───────────────────────────────────
+    case ADD_TO_CART_SUCCESS: {
       const item = action.payload;
-      const existingItem = state.cartItems.find(
-        (i) => i.product === item.product
-      );
+      const existItem = state.cartItems.find((x) => x.product === item.product);
 
-      if (existingItem) {
-        // If item exists, update quantity
-        return {
-          ...state,
-          loading: false,
-          cartItems: state.cartItems.map((i) =>
-            i.product === existingItem.product
-              ? { ...i, quantity: i.quantity + item.quantity }
-              : i
-          ),
-        };
+      let newCart;
+      if (existItem) {
+        newCart = state.cartItems.map((x) =>
+          x.product === existItem.product
+            ? { ...x, quantity: x.quantity + item.quantity }
+            : x
+        );
       } else {
-        // If item doesn't exist, add new item
-        return {
-          ...state,
-          loading: false,
-          cartItems: [...state.cartItems, item],
-        };
+        newCart = [...state.cartItems, item];
       }
 
-    case REMOVE_CART_ITEM_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        cartItems: state.cartItems.filter(
-          (item) => item.product !== action.payload
-        ),
-      };
+      localStorage.setItem("cartItems", JSON.stringify(newCart));
+      return { ...state, loading: false, cartItems: newCart };
+    }
 
-    case UPDATE_CART_QUANTITY_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        cartItems: state.cartItems.map((item) =>
-          item.product === action.payload.productId
-            ? { ...item, quantity: action.payload.quantity }
-            : item
-        ),
-      };
+    // ── FETCH CART ───────────────────────────────────
+    case FETCH_CART_SUCCESS: {
+      localStorage.setItem("cartItems", JSON.stringify(action.payload));
+      return { ...state, loading: false, cartItems: action.payload };
+    }
 
-    case CLEAR_CART_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        cartItems: [],
-      };
+    // ── REMOVE / UPDATE / CLEAR ───────────────────────
+    case REMOVE_FROM_CART_SUCCESS: {
+      const filtered = state.cartItems.filter(
+        (x) => x.product !== action.payload
+      );
+      localStorage.setItem("cartItems", JSON.stringify(filtered));
+      return { ...state, cartItems: filtered };
+    }
 
-    case GET_CART_ITEMS_SUCCESS:
-      return {
-        ...state,
-        loading: false,
-        cartItems: action.payload,
-      };
+    case UPDATE_QUANTITY_SUCCESS: {
+      const updated = state.cartItems.map((x) =>
+        x.product === action.payload.productId
+          ? { ...x, quantity: action.payload.quantity }
+          : x
+      );
+      localStorage.setItem("cartItems", JSON.stringify(updated));
+      return { ...state, cartItems: updated };
+    }
 
-    case SAVE_SHIPPING_INFO:
-      return {
-        ...state,
-        shippingInfo: action.payload,
-      };
+    case CLEAR_CART_SUCCESS: {
+      localStorage.setItem("cartItems", JSON.stringify([]));
+      return { ...state, cartItems: [] };
+    }
 
+    // ── ERRORS ───────────────────────────────────────
     case ADD_TO_CART_FAIL:
-    case REMOVE_CART_ITEM_FAIL:
-    case UPDATE_CART_QUANTITY_FAIL:
-    case CLEAR_CART_FAIL:
-    case GET_CART_ITEMS_FAIL:
-      return {
-        ...state,
-        loading: false,
-        error: action.payload,
-      };
+    case FETCH_CART_FAIL:
+      return { ...state, loading: false, error: action.payload };
 
     case CLEAR_CART_ERRORS:
-      return {
-        ...state,
-        error: null,
-      };
+      return { ...state, error: null };
 
     default:
       return state;
