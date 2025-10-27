@@ -6,16 +6,14 @@ import Loader from './components/layouts/Loader';
 import RegisterPage from './components/pages/RegisterPage ';
 import ProductDitails from './components/pages/ProductDitails';
 import AllProduct from './components/pages/AllProduct';
-
-// import Cart from './components/ui/Cart';
-import ErrorBoundary from "./components/errors/ErrorBoundary.jsx";
-// import ErrorVirusShooter from './components/errors/ErrorVirusShooter';
-import './app.css';
+// import ErrorBoundary from "./components/errors/ErrorBoundary.jsx";
 import AddToCart from './components/pages/AddToCart.jsx';
+import ProfilePage from './components/pages/ProfilePage.jsx';
+import './app.css';
 
 const App = () => {
   return (
-    <ErrorBoundary>
+    // <ErrorBoundary>
       <Router>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -25,9 +23,10 @@ const App = () => {
           <Route path="/AddToCart" element={<AddToCart />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/profile" element={<ProfilePage />} />
         </Routes>
       </Router>
-    </ErrorBoundary >
+    // </ErrorBoundary >
   );
 };
 
