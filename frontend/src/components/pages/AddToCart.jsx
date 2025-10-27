@@ -5,7 +5,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { ShoppingCart, Plus, Minus, X, Trash2, ArrowLeft } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Header from '../layouts/Header';
-import { removeFromCart, updateCartQuantity } from '../..//actions/cart.action'; 
+// import { removeFromCart, updateCartQuantity } from '../..//actions/cart.action'; 
 
 const AddToCart = () => {
     const dispatch = useDispatch();

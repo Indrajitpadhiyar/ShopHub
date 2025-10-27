@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
-import { getProfile, updateAddress } from "../../actions/user.action";
+// import { getProfile, updateAddress } from "../../actions/user.action";
 import Loader from "../layouts/Loader";
 import toast from "react-hot-toast";
 

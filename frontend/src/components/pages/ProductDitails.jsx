@@ -17,13 +17,13 @@ import {
   Minus,
 } from "lucide-react";
 import { useSelector, useDispatch } from "react-redux";
-import { getProducts } from "../../actions/product.action";
-import { addToCart } from "../../actions/cart.action";
+// import { getProducts } from "../../actions/product.action";
+// import { addToCart } from "../../actions/cart.action";
 import Loader from "../layouts/Loader";
 import Header from "../layouts/Header";
 import Footer from "../layouts/Footer";
 import ReviewCard from "../layouts/ReviewCard";
-import AddToCartModal from "../ui/AddToCartModal";
+// import AddToCartModal from "../ui/AddToCartModal";
 import toast from "react-hot-toast";
 
 // Sub-component: Image Gallery (unchanged)

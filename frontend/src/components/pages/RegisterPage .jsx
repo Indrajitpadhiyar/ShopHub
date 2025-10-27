@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Eye, EyeOff, Mail, Lock, User, ArrowRight } from 'lucide-react'
-import { register, clearErrors } from '../../actions/auth.action' // Import register action
+// import { register, clearErrors } from '../../actions/auth.action' 
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 

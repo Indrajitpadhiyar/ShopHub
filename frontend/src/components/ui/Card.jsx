@@ -3,9 +3,9 @@ import React, { useState } from "react";
 import { Star, ShoppingCart } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import AddToCartModal from "./AddToCartModal";
+// import AddToCartModal from "./AddToCartModal";
 import { useDispatch } from "react-redux";
-import { addToCart } from "../../actions/cart.action";
+// import { addToCart } from "../../actions/cart.action";
 
 const Card = ({ product }) => {
     const navigate = useNavigate();
@@ -124,12 +124,12 @@ const Card = ({ product }) => {
             </motion.div>
 
             {/* Modal */}
-            <AddToCartModal
+            {/* <AddToCartModal
                 isOpen={modalOpen}
                 onClose={() => setModalOpen(false)}
                 product={product}
                 onConfirm={handleAdd}
-            />
+            /> */}
         </>
     );
 };

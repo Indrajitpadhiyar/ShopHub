@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
-import { login } from "../../actions/auth.action"; // Import login action
+// import { login } from "../../actions/auth.action"; 
 import toast from "react-hot-toast";
 
 const LoginPage = () => {
@@ -13,7 +13,6 @@ const LoginPage = () => {
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { isAuthenticated, loading, error } = useSelector((state) => state.auth);
 
   // Handle floating shapes animation
   useEffect(() => {
@@ -29,15 +28,15 @@ const LoginPage = () => {
   }, []);
 
   // Handle navigation after successful login and display errors
-  useEffect(() => {
-    if (isAuthenticated) {
-      toast.success("Login successful!");
-      navigate("/addToCart"); // Redirect to cart page after login
-    }
-    if (error) {
-      toast.error(error);
-    }
-  }, [isAuthenticated, error, navigate]);
+  // useEffect(() => {
+  //   if (isAuthenticated) {
+  //     toast.success("Login successful!");
+  //     navigate("/addToCart"); // Redirect to cart page after login
+  //   }
+  //   if (error) {
+  //     toast.error(error);
+  //   }
+  // }, [isAuthenticated, error, navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -155,10 +154,10 @@ const LoginPage = () => {
               {/* Submit button */}
               <button
                 type="submit"
-                disabled={loading}
+                
                 className="w-full py-3.5 mt-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform transition-all duration-300 hover:scale-105 hover:-translate-y-1 flex items-center justify-center gap-2 group disabled:opacity-50"
               >
-                <span>{loading ? "Signing In..." : "Sign In"}</span>
+                <span>{"Sign In"}</span>
                 <ArrowRight className="w-5 h-5 transition-transform duration-300 group-hover:translate-x-1" />
               </button>
             </form>
