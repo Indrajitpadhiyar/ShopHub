@@ -32,10 +32,12 @@ const AllProduct = () => {
     const rotate = useTransform(scrollY, [0, 1000], [0, 360]);
     const scale = useTransform(scrollY, [0, 500], [1, 1.2]);
 
+    // Fetch products
     useEffect(() => {
         dispatch(getProducts());
     }, [dispatch]);
 
+    // Show error toast
     useEffect(() => {
         if (error) {
             toast.error(error || "Something went wrong while fetching products");
@@ -51,7 +53,7 @@ const AllProduct = () => {
 
         let result = [...products];
 
-        // Filter by search query
+        // Search filter
         if (searchQuery.trim()) {
             const query = searchQuery.toLowerCase();
             result = result.filter(
@@ -63,19 +65,19 @@ const AllProduct = () => {
             );
         }
 
-        // Filter by category
+        // Category filter
         if (selectedCategory !== "all") {
             result = result.filter(
                 (product) => product.category?.toLowerCase() === selectedCategory.toLowerCase()
             );
         }
 
-        // Filter by price range
+        // Price filter
         result = result.filter(
             (product) => product.price >= priceRange[0] && product.price <= priceRange[1]
         );
 
-        // Sort products
+        // Sort
         switch (sortBy) {
             case "price-low":
                 result.sort((a, b) => (a.price || 0) - (b.price || 0));
@@ -96,7 +98,7 @@ const AllProduct = () => {
         setFilteredProducts(result);
     }, [products, searchQuery, selectedCategory, priceRange, sortBy]);
 
-    // Get unique categories and calculate price range
+    // Categories & Price Range
     const categories = ["all", ...new Set(products?.map((p) => p.category?.toLowerCase()).filter(Boolean) || [])];
     const minPrice = 0;
     const maxPrice = products?.length > 0 ? Math.max(...products.map(p => p.price || 0)) : 50000;
@@ -116,7 +118,7 @@ const AllProduct = () => {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 relative overflow-hidden">
-            {/* Animated Background Elements */}
+            {/* Animated Background Blobs */}
             <motion.div
                 style={{ y: y1 }}
                 className="absolute top-20 left-10 w-64 h-64 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-30"
@@ -147,7 +149,7 @@ const AllProduct = () => {
                     transition={{ duration: 0.6 }}
                     className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12"
                 >
-                    {/* Title Section */}
+                    {/* Title */}
                     <motion.div
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -184,9 +186,9 @@ const AllProduct = () => {
                         </div>
                     )}
 
-                    {/* Main Grid Layout */}
+                    {/* Grid Layout */}
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                        {/* Filter Sidebar - Desktop */}
+                        {/* Desktop Sidebar */}
                         <div className="hidden lg:block lg:col-span-1">
                             {!loading && products && products.length > 0 && (
                                 <div className="sticky top-24">
@@ -202,12 +204,12 @@ const AllProduct = () => {
                             )}
                         </div>
 
-                        {/* Filter Sidebar - Mobile */}
+                        {/* Mobile Sidebar */}
                         <AnimatePresence>
                             {showMobileFilters && (
                                 <motion.div
                                     initial={{ opacity: 0, height: 0 }}
-                                    animate={{ opacity: 1, height: 'auto' }}
+                                    animate={{ opacity: 1, height: "auto" }}
                                     exit={{ opacity: 0, height: 0 }}
                                     transition={{ duration: 0.3 }}
                                     className="lg:hidden col-span-1 overflow-hidden"
@@ -228,7 +230,7 @@ const AllProduct = () => {
 
                         {/* Products Section */}
                         <div className="lg:col-span-3">
-                            {/* Sort and Product Count Section */}
+                            {/* Sort & Count */}
                             {!loading && products && products.length > 0 && (
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
@@ -243,9 +245,7 @@ const AllProduct = () => {
                                             </p>
                                         </div>
                                         <div className="w-full sm:w-64">
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                Sort By
-                                            </label>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">Sort By</label>
                                             <select
                                                 value={sortBy}
                                                 onChange={(e) => setSortBy(e.target.value)}
@@ -285,7 +285,7 @@ const AllProduct = () => {
                                                 ease: "easeOut",
                                             }}
                                             whileHover={{
-                                                y: -8,
+                                                y: -12,
                                                 transition: { duration: 0.3 },
                                             }}
                                         >
@@ -305,7 +305,7 @@ const AllProduct = () => {
                                         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                                         className="text-6xl sm:text-7xl mb-4 sm:mb-6"
                                     >
-                                        🔍
+                                        Search
                                     </motion.div>
                                     <h3 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-2">
                                         No products found for "{searchQuery}"
@@ -333,7 +333,7 @@ const AllProduct = () => {
                                             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                                             className="text-6xl sm:text-7xl mb-4 sm:mb-6"
                                         >
-                                            📦
+                                            Box
                                         </motion.div>
                                         <h3 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-2">
                                             No products found.
@@ -351,6 +351,7 @@ const AllProduct = () => {
                     <div className="h-20 sm:h-32" />
                 </motion.div>
             </div>
+
             <Footer />
         </div>
     );
