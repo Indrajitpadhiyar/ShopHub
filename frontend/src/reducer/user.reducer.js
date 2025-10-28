@@ -1,23 +1,27 @@
 import {
-  LOGIN_FAIL,
   LOGIN_REQUEST,
   LOGIN_SUCCESS,
+  LOGIN_FAIL,
   CLEAR_ERRORS,
 } from "../constans/user.constants";
 
-export const userReducer = (state = { products: [] }, action) => {
+const initialState = {
+  loading: false,
+  isAuthenticated: false,
+  user: null,
+  error: null,
+};
+
+export const userReducer = (state = initialState, action) => {
   switch (action.type) {
     case LOGIN_REQUEST:
-      return {
-        loading: true,
-        isAuthenticated: false,
-      };
+      return { ...state, loading: true, error: null };
     case LOGIN_SUCCESS:
       return {
         ...state,
         loading: false,
         isAuthenticated: true,
-        user: action.playLoad,
+        user: action.payload,
       };
     case LOGIN_FAIL:
       return {
@@ -25,13 +29,10 @@ export const userReducer = (state = { products: [] }, action) => {
         loading: false,
         isAuthenticated: false,
         user: null,
-        error: action.playLoad,
+        error: action.payload,
       };
     case CLEAR_ERRORS:
-      return {
-        ...state,
-        error: null,
-      };
+      return { ...state, error: null };
     default:
       return state;
   }

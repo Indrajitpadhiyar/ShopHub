@@ -1,43 +1,46 @@
 import axios from "axios";
 import {
-  GET_PROFILE_REQUEST,
-  GET_PROFILE_SUCCESS,
-  GET_PROFILE_FAIL,
-  UPDATE_ADDRESS_REQUEST,
-  UPDATE_ADDRESS_SUCCESS,
-  UPDATE_ADDRESS_FAIL,
+  LOGIN_REQUEST,
+  LOGIN_SUCCESS,
+  LOGIN_FAIL,
+  CLEAR_ERRORS,
 } from "../constans/user.constants";
 
-export const getProfile = () => async (dispatch) => {
+export const login = (email, password) => async (dispatch) => {
   try {
-    dispatch({ type: GET_PROFILE_REQUEST });
+    dispatch({ type: LOGIN_REQUEST });
 
-    const { data } = await axios.get("/api/v1/me"); 
-    dispatch({ type: GET_PROFILE_SUCCESS, payload: data.user });
+    const config = { headers: { "Content-Type": "application/json" } };
+    const { data } = await axios.post(
+      "/api/v1/login",
+      { email, password },
+      config
+    );
+
+    dispatch({ type: LOGIN_SUCCESS, payload: data.user });
   } catch (error) {
     dispatch({
-      type: GET_PROFILE_FAIL,
-      payload: error.response?.data?.message || error.message,
+      type: LOGIN_FAIL,
+      payload: error.response?.data?.message || "Login failed",
     });
   }
 };
 
-export const updateAddress = (addressData) => async (dispatch) => {
+export const loadUser = () => async (dispatch) => {
   try {
-    dispatch({ type: UPDATE_ADDRESS_REQUEST });
+    dispatch({ type: LOGIN_REQUEST });
 
-    const config = { headers: { "Content-Type": "application/json" } };
-    const { data } = await axios.put(
-      "/api/v1/me/update",
-      addressData,
-      config
-    );
+    const { data } = await axios.get("/api/v1/me"); 
 
-    dispatch({ type: UPDATE_ADDRESS_SUCCESS, payload: data.user });
+    dispatch({ type: LOGIN_SUCCESS, payload: data.user });
   } catch (error) {
     dispatch({
-      type: UPDATE_ADDRESS_FAIL,
-      payload: error.response?.data?.message || error.message,
+      type: LOGIN_FAIL,
+      payload: error.response?.data?.message || "Please login again",
     });
   }
+};
+
+export const clearErrors = () => async (dispatch) => {
+  dispatch({ type: CLEAR_ERRORS });
 };
