@@ -91,7 +91,7 @@ const Sidebar = ({ isOpen, onClose, filters, setFilters }) => {
             )}
 
             {/* Sidebar */}
-            <div className={`fixed lg:sticky top-0 left-0 h-screen bg-white shadow-2xl lg:shadow-lg transition-all duration-300 ease-in-out z-50 flex flex-col
+            <div className={`fixed lg:sticky top-0 left-0 h-screen bg-white shadow-2xl lg:shadow-lg transition-all duration-300 ease-in-out z-40 flex flex-col
                 ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
                 w-80 lg:w-72`}
             >
