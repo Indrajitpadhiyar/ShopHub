@@ -1,11 +1,10 @@
-'use client';
-
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronRight } from 'lucide-react';
 import { getProduct } from '../../redux/actions/product.Action';
 import { useDispatch, useSelector } from 'react-redux';
 import ProductCard from '../ui/ProductCard';
+import Loading from '../ui/Loading';
 
 const Products = () => {
     const dispatch = useDispatch();
@@ -30,8 +29,8 @@ const Products = () => {
 
                 {/* LOADING STATE */}
                 {loading && (
-                    <div className="text-center py-10">
-                        <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-orange-500 border-t-transparent"></div>
+                    <div className="flex items-center justify-center py-10">
+                        <Loading />
                     </div>
                 )}
 
