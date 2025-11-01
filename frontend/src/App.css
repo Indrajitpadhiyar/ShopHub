@@ -1,2 +1,40 @@
 @import "tailwindcss";
 
+/* ✅ Slide from Right + Popup Effect */
+@keyframes slidePop {
+    0% {
+        transform: translateX(120%) scale(0.8);
+        opacity: 0;
+    }
+
+    60% {
+        transform: translateX(-10%) scale(1.05);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Exit animation (slide out left + fade) */
+@keyframes slideOutLeft {
+    from {
+        transform: translateX(0) scale(1);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(-100%) scale(0.9);
+        opacity: 0;
+    }
+}
+
+/* Apply animations */
+.react-hot-toast {
+    animation: slidePop 0.5s ease-out;
+}
+
+.react-hot-toast--exit {
+    animation: slideOutLeft 0.4s ease-in forwards;
+}

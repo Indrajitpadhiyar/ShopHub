@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Filter, Search, ShoppingBag, Loader } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
+import toast from "react-hot-toast";
 import { getProduct } from '../../redux/actions/product.Action';
-import Navbar from '../layouts/Navbar';
+import Navbar from '../ui/Navbar';
 import Sidebar from '../layouts/Sidebar';
 import ProductCard from '../ui/ProductCard';
-import Footer from '../layouts/Footer';
+import Footer from '../ui/Footer';
 import Loading from '../ui/Loading';
 
 const AllProducts = () => {
@@ -16,7 +17,7 @@ const AllProducts = () => {
     const [filters, setFilters] = useState({
         categories: [],
         brands: [],
-        priceRange: [0, 10000],
+        priceRange: [0, 1000000],
         customMin: '',
         customMax: '',
     });
@@ -26,8 +27,12 @@ const AllProducts = () => {
 
     // Fetch products from Redux
     useEffect(() => {
-        dispatch(getProduct());
-    }, [dispatch]);
+        if (error) {
+            toast.error(error);
+        } else {
+            dispatch(getProduct());
+        }
+    }, [dispatch, error]);
 
     // Filter products based on active filters
     const filteredProducts = Array.isArray(products) ? products.filter(product => {
@@ -253,8 +258,8 @@ const AllProducts = () => {
                                     onClick={() => handlePageChange(currentPage - 1)}
                                     disabled={currentPage === 1}
                                     className={`px-4 py-2 border border-gray-300 rounded-lg transition-colors text-sm font-medium ${currentPage === 1
-                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            : 'hover:bg-gray-50 text-gray-700'
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'hover:bg-gray-50 text-gray-700'
                                         }`}
                                 >
                                     Previous
@@ -274,8 +279,8 @@ const AllProducts = () => {
                                                 key={pageNumber}
                                                 onClick={() => handlePageChange(pageNumber)}
                                                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${currentPage === pageNumber
-                                                        ? 'bg-orange-600 text-white shadow-md'
-                                                        : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
+                                                    ? 'bg-orange-600 text-white shadow-md'
+                                                    : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
                                                     }`}
                                             >
                                                 {pageNumber}
@@ -294,8 +299,8 @@ const AllProducts = () => {
                                     onClick={() => handlePageChange(currentPage + 1)}
                                     disabled={currentPage === totalPages}
                                     className={`px-4 py-2 border border-gray-300 rounded-lg transition-colors text-sm font-medium ${currentPage === totalPages
-                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            : 'hover:bg-gray-50 text-gray-700'
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'hover:bg-gray-50 text-gray-700'
                                         }`}
                                 >
                                     Next

@@ -51,7 +51,7 @@ const Sidebar = ({ isOpen, onClose, filters, setFilters }) => {
 
     const applyCustomPrice = () => {
         const min = parseInt(filters.customMin) || 0;
-        const max = parseInt(filters.customMax) || 100000;
+        const max = parseInt(filters.customMax) || 1000000;
         setFilters(prev => ({
             ...prev,
             priceRange: [min, max],
@@ -64,7 +64,7 @@ const Sidebar = ({ isOpen, onClose, filters, setFilters }) => {
         setFilters({
             categories: [],
             brands: [],
-            priceRange: [0, 100000],
+            priceRange: [0, 1000000],
             customMin: '',
             customMax: '',
         });

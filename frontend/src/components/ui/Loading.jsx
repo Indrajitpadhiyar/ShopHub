@@ -143,7 +143,7 @@ const Loading = () => {
                         animate={{ opacity: 1 }}
                         transition={{ duration: 1 }}
                     >
-                        {'Crafting your perfect bag...'.split('').map((char, i) => (
+                        {'Loading products...'.split('').map((char, i) => (
                             <motion.span
                                 key={i}
                                 initial={{ opacity: 0 }}

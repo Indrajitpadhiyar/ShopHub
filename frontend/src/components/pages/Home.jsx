@@ -1,10 +1,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import Navbar from '../layouts/Navbar';
-import Footer from '../layouts/Footer';
+import Navbar from '../ui/Navbar';
+import Footer from '../ui/Footer';
 import { Zap, Shield, Truck, Star, ChevronRight, ArrowRight } from 'lucide-react';
 import Products from '../layouts/Products';
-import MetaData from '../layouts/MetaData';
+import MetaData from '../ui/MetaData';
 
 const Home = () => {
     const heroFeatures = [

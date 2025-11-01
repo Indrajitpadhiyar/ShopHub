@@ -48,7 +48,7 @@ const Navbar = () => {
                         onClick={() => navigate('/')}
                     >
                         <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-                            <img src="/bagifyLogo.png" alt="Bagify" className="w-10 h-10" />
+                            <img src="/bagifyLogo.png" alt="Bagify" className="w-full h-full rounded-full" />
                         </div>
                         <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
                             Bagify
@@ -164,8 +164,8 @@ const Navbar = () => {
                             >
                                 <div
                                     className={`absolute inset-0 rounded-full transition-all duration-500 ${isActive
-                                            ? 'bg-gradient-to-r from-orange-500 to-orange-600 scale-100 opacity-100'
-                                            : 'bg-orange-100 scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100'
+                                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 scale-100 opacity-100'
+                                        : 'bg-orange-100 scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100'
                                         }`}
                                 />
                                 <div className="relative flex items-center space-x-2">
@@ -233,8 +233,8 @@ const Navbar = () => {
                                         whileHover={{ x: 5 }}
                                         onClick={() => handleNavClick(item.path)}
                                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive
-                                                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105'
-                                                : 'bg-white text-gray-700 hover:bg-orange-50 hover:scale-102'
+                                            ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105'
+                                            : 'bg-white text-gray-700 hover:bg-orange-50 hover:scale-102'
                                             }`}
                                     >
                                         <Icon className="w-5 h-5" />
