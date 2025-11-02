@@ -9,45 +9,49 @@ import {
   CLEAR_ERRORS,
 } from "../constans/product.Constans";
 
-export const getProduct = () => async (dispatch) => {
-  try {
-    dispatch({ type: ALL_PRODUCT_REQUEST });
+export const getProduct =
+  () =>
+  async (dispatch) => {
+    try {
+      dispatch({ type: ALL_PRODUCT_REQUEST });
 
-    const { data } = await axios.get("/api/v1/products");
+      let link = `/api/v1/products`;
 
-    dispatch({
-      type: ALL_PRODUCT_SUCCESS,
-      payload: data,
-    });
-  } catch (error) {
-    console.group("API Error: getProduct()");
-    console.error("Message:", error.message);
-    console.error("Response:", error.response?.data);
-    console.groupEnd();
+      const { data } = await axios.get(link);
 
-    dispatch({
-      type: ALL_PRODUCT_FAIL,
-      payload:
-        error.response?.data?.message ||
-        "Something went wrong while fetching products.",
-    });
-  }
-};
+      dispatch({
+        type: ALL_PRODUCT_SUCCESS,
+        payload: data,
+      });
+    } catch (error) {
+      console.group("API Error: getProduct()");
+      console.error("Message:", error.message);
+      console.error("Response:", error.response?.data);
+      console.groupEnd();
+
+      dispatch({
+        type: ALL_PRODUCT_FAIL,
+        payload:
+          error.response?.data?.message ||
+          "Something went wrong while fetching products.",
+      });
+    }
+  };
 
 //
 export const getProductDetails = (id) => async (dispatch) => {
   try {
-    dispatch({ type: ALL_PRODUCT_REQUEST });
+    dispatch({ type: PRODUCT_DETAILS_REQUEST });
 
     const { data } = await axios.get(`/api/v1/product/${id}`);
 
     dispatch({
-      type: ALL_PRODUCT_SUCCESS,
+      type: PRODUCT_DETAILS_SUCCESS,
       payload: data.product,
     });
   } catch (error) {
     dispatch({
-      type: ALL_PRODUCT_FAIL,
+      type: PRODUCT_DETAILS_FAIL,
       payload:
         error.response?.data?.message ||
         "Something went wrong while fetching products.",

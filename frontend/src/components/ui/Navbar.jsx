@@ -1,13 +1,165 @@
-import React, { useState } from 'react';
+// src/components/Navbar.jsx
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, ShoppingCart, Menu, X, Home, Grid, Tag, Heart } from 'lucide-react';
+import {
+    Search,
+    ShoppingCart,
+    Menu,
+    X,
+    Home,
+    Grid,
+    Tag,
+    Heart,
+} from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 
+const SearchDropdown = ({
+    query,
+    results,
+    isOpen,
+    onSelect,
+    onClose,
+}) => {
+    // Close on outside click
+    useEffect(() => {
+        if (!isOpen) return;
+        const handler = (e) => {
+            if (!e.target.closest('.search-dropdown')) onClose();
+        };
+        document.addEventListener('mousedown', handler);
+        return () => document.removeEventListener('mousedown', handler);
+    }, [isOpen, onClose]);
+
+    if (!isOpen) return null;
+
+    const hasExact = results.some((p) =>
+        p.name.toLowerCase().includes(query.toLowerCase())
+    );
+
+    return (
+        <AnimatePresence>
+            <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
+                className="search-dropdown absolute left-0 right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden z-50"
+            >
+                {results.length === 0 ? (
+                    <div className="px-6 py-8 text-center text-gray-500">
+                        No products found for “<strong>{query}</strong>”
+                    </div>
+                ) : (
+                    <ul className="max-h-96 overflow-y-auto">
+                        {results.map((product, idx) => (
+                            <motion.li
+                                key={product._id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: idx * 0.03 }}
+                            >
+                                <Link
+                                    to={`/product/${product._id}`}
+                                    onClick={() => {
+                                        onSelect();
+                                        onClose();
+                                    }}
+                                    className="flex items-center gap-4 px-5 py-3 hover:bg-orange-50 transition-colors"
+                                >
+                                    <img
+                                        src={product.images?.[0]?.url || '/placeholder.jpg'}
+                                        alt={product.name}
+                                        className="w-12 h-12 object-cover rounded-lg"
+                                    />
+                                    <div className="flex-1">
+                                        <p className="font-medium text-gray-800 truncate">
+                                            {product.name}
+                                        </p>
+                                        <p className="text-sm text-gray-500">
+                                            ₹{product.price?.toLocaleString()}
+                                        </p>
+                                    </div>
+                                </Link>
+                            </motion.li>
+                        ))}
+                        {!hasExact && query && (
+                            <li className="px-5 py-2 text-xs text-gray-400 italic">
+                                Showing related results
+                            </li>
+                        )}
+                    </ul>
+                )}
+                {/* Footer – View all */}
+                {query && results.length > 0 && (
+                    <div className="border-t border-gray-100 px-5 py-3 bg-gray-50">
+                        <Link
+                            to={`/search?q=${encodeURIComponent(query)}`}
+                            onClick={onClose}
+                            className="flex items-center justify-center gap-2 text-orange-600 font-medium hover:underline"
+                        >
+                            <Search className="w-4 h-4" />
+                            View all results for “{query}”
+                        </Link>
+                    </div>
+                )}
+            </motion.div>
+        </AnimatePresence>
+    );
+};
+
+// ──────────────────────────────────────────────────────────────
+// 2. Main Navbar Component
+// ──────────────────────────────────────────────────────────────
 const Navbar = () => {
     const navigate = useNavigate();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [showDropdown, setShowDropdown] = useState(false);
+
+    // Pull full product list from Redux (once)
+    const { products = [] } = useSelector((state) => state.products || {});
+
+    // ──── FILTER LOGIC (exact → fuzzy fallback) ────
+    const filtered = useMemo(() => {
+        if (!searchQuery.trim()) return [];
+        const q = searchQuery.toLowerCase();
+
+        const exact = products.filter((p) =>
+            p.name.toLowerCase().includes(q)
+        );
+
+        if (exact.length > 0) return exact.slice(0, 8);
+
+        // Fallback: words that start with query
+        return products
+            .filter((p) =>
+                p.name
+                    .toLowerCase()
+                    .split(' ')
+                    .some((w) => w.startsWith(q))
+            )
+            .slice(0, 8);
+    }, [searchQuery, products]);
+
+    // Close dropdown on route change
+    useEffect(() => {
+        const unlisten = navigate((loc) => {
+            setShowDropdown(false);
+            setSearchQuery('');
+        });
+        return unlisten;
+    }, [navigate]);
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter' && searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+            setShowDropdown(false);
+            setSearchQuery('');
+        }
+    };
 
     const navItems = [
         { id: 'home', label: 'Home', icon: Home, path: '/' },
@@ -21,16 +173,7 @@ const Navbar = () => {
         setIsMenuOpen(false);
     };
 
-    const toggleLogin = () => {
-        setIsLoggedIn(!isLoggedIn);
-    };
-
-    const handleSearch = (e) => {
-        if (e.key === 'Enter' && searchQuery.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-            setSearchQuery('');
-        }
-    };
+    const toggleLogin = () => setIsLoggedIn(!isLoggedIn);
 
     const currentPath = window.location.pathname;
 
@@ -38,8 +181,7 @@ const Navbar = () => {
         <nav className="bg-white shadow-lg sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-
-                    {/* LOGO - Simple Fade + Slide */}
+                    {/* ─── LOGO ─── */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
@@ -48,37 +190,56 @@ const Navbar = () => {
                         onClick={() => navigate('/')}
                     >
                         <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
-                            <img src="/bagifyLogo.png" alt="Bagify" className="w-full h-full rounded-full" />
+                            <img
+                                src="/bagifyLogo.png"
+                                alt="Bagify"
+                                className="w-full h-full rounded-full"
+                            />
                         </div>
                         <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent">
                             Bagify
                         </span>
                     </motion.div>
 
-                    {/* SEARCH BAR - Fade In */}
+                    {/* ─── DESKTOP SEARCH BAR ─── */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
-                        className="hidden md:flex flex-1 max-w-2xl mx-8"
+                        className="hidden md:flex flex-1 max-w-2xl mx-8 relative"
                     >
                         <div className="relative w-full group">
                             <input
                                 type="text"
                                 value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                onKeyDown={handleSearch}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setShowDropdown(!!e.target.value);
+                                }}
+                                onKeyDown={handleKeyDown}
+                                onFocus={() => searchQuery && setShowDropdown(true)}
                                 placeholder="Search for products..."
                                 className="w-full px-6 py-3 pl-12 rounded-full border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-all duration-300 shadow-sm hover:shadow-md"
                             />
                             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                         </div>
+
+                        {/* Dropdown */}
+                        <SearchDropdown
+                            query={searchQuery}
+                            results={filtered}
+                            isOpen={showDropdown}
+                            onSelect={() => {
+                                setSearchQuery('');
+                                setShowDropdown(false);
+                            }}
+                            onClose={() => setShowDropdown(false)}
+                        />
                     </motion.div>
 
-                    {/* RIGHT SIDE */}
+                    {/* ─── RIGHT SIDE (Cart, Login, Mobile Menu) ─── */}
                     <div className="flex items-center space-x-4">
-
-                        {/* CART - Gentle Scale */}
+                        {/* Cart */}
                         <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.95 }}
@@ -91,7 +252,7 @@ const Navbar = () => {
                             </span>
                         </motion.button>
 
-                        {/* LOGIN / PROFILE */}
+                        {/* Login / Profile */}
                         <AnimatePresence mode="wait">
                             {isLoggedIn ? (
                                 <motion.button
@@ -129,7 +290,7 @@ const Navbar = () => {
                             )}
                         </AnimatePresence>
 
-                        {/* MOBILE MENU TOGGLE */}
+                        {/* Mobile Menu Toggle */}
                         <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
@@ -141,7 +302,7 @@ const Navbar = () => {
                     </div>
                 </div>
 
-                {/* DESKTOP NAV - Staggered Fade In */}
+                {/* ─── DESKTOP NAV LINKS ─── */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -164,17 +325,21 @@ const Navbar = () => {
                             >
                                 <div
                                     className={`absolute inset-0 rounded-full transition-all duration-500 ${isActive
-                                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 scale-100 opacity-100'
-                                        : 'bg-orange-100 scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100'
+                                            ? 'bg-gradient-to-r from-orange-500 to-orange-600 scale-100 opacity-100'
+                                            : 'bg-orange-100 scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100'
                                         }`}
                                 />
                                 <div className="relative flex items-center space-x-2">
                                     <Icon
-                                        className={`w-5 h-5 transition-colors duration-300 ${isActive ? 'text-white' : 'text-gray-700 group-hover:text-orange-600'
+                                        className={`w-5 h-5 transition-colors duration-300 ${isActive
+                                                ? 'text-white'
+                                                : 'text-gray-700 group-hover:text-orange-600'
                                             }`}
                                     />
                                     <span
-                                        className={`font-medium transition-colors duration-300 ${isActive ? 'text-white' : 'text-gray-700 group-hover:text-orange-600'
+                                        className={`font-medium transition-colors duration-300 ${isActive
+                                                ? 'text-white'
+                                                : 'text-gray-700 group-hover:text-orange-600'
                                             }`}
                                     >
                                         {item.label}
@@ -188,35 +353,51 @@ const Navbar = () => {
                     })}
                 </motion.div>
 
-                {/* MOBILE SEARCH - Fade In */}
+                {/* ─── MOBILE SEARCH ─── */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.3 }}
-                    className="md:hidden pb-4"
+                    className="md:hidden pb-4 relative"
                 >
                     <div className="relative w-full">
                         <input
                             type="text"
                             value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={handleSearch}
+                            onChange={(e) => {
+                                setSearchQuery(e.target.value);
+                                setShowDropdown(!!e.target.value);
+                            }}
+                            onKeyDown={handleKeyDown}
+                            onFocus={() => searchQuery && setShowDropdown(true)}
                             placeholder="Search products..."
                             className="w-full px-4 py-2 pl-10 rounded-full border-2 border-gray-200 focus:border-orange-500 focus:outline-none transition-all duration-300"
                         />
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     </div>
+
+                    {/* Mobile Dropdown */}
+                    <SearchDropdown
+                        query={searchQuery}
+                        results={filtered}
+                        isOpen={showDropdown}
+                        onSelect={() => {
+                            setSearchQuery('');
+                            setShowDropdown(false);
+                        }}
+                        onClose={() => setShowDropdown(false)}
+                    />
                 </motion.div>
             </div>
 
-            {/* MOBILE MENU - Smooth Slide Down */}
+            {/* ─── MOBILE MENU (Slide Down) ─── */}
             <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div
                         initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
+                        animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: "easeInOut" }}
+                        transition={{ duration: 0.3, ease: 'easeInOut' }}
                         className="md:hidden overflow-hidden"
                     >
                         <div className="px-4 pb-4 space-y-2 bg-gradient-to-b from-white to-orange-50">
@@ -233,8 +414,8 @@ const Navbar = () => {
                                         whileHover={{ x: 5 }}
                                         onClick={() => handleNavClick(item.path)}
                                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive
-                                            ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105'
-                                            : 'bg-white text-gray-700 hover:bg-orange-50 hover:scale-102'
+                                                ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105'
+                                                : 'bg-white text-gray-700 hover:bg-orange-50 hover:scale-102'
                                             }`}
                                     >
                                         <Icon className="w-5 h-5" />
