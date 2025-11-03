@@ -8,6 +8,7 @@ import toast from "react-hot-toast";
 import Navbar from "../ui/Navbar";
 import Footer from "../ui/Footer";
 import ReviewSection from "../layouts/ReviewSection";
+import MetaData from "../ui/MetaData";
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -65,6 +66,7 @@ const ProductDetails = () => {
 
     return (
         <>
+            <MetaData title={product ? `Bagify | ${product.name}` : 'Loading...'} />
             <Navbar />
             <div className="bg-gray-50 py-4">
                 <div className="max-w-7xl mx-auto px-4">

@@ -67,7 +67,7 @@ const Products = () => {
                 {/* VIEW ALL BUTTON */}
                 <div className="text-center mt-12">
                     <motion.a
-                        href="/shop"
+                        href="/products"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="inline-flex items-center space-x-2 px-8 py-4 bg-orange-600 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all"

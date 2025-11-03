@@ -9,6 +9,7 @@ import Sidebar from '../layouts/Sidebar';
 import ProductCard from '../ui/ProductCard';
 import Footer from '../ui/Footer';
 import Loading from '../ui/Loading';
+import MetaData from '../ui/MetaData';
 
 const SearchResults = () => {
     const [searchParams] = useSearchParams();
@@ -92,6 +93,7 @@ const SearchResults = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            <MetaData title="Search Results" />
             <Navbar />
 
             <div className="flex relative">
@@ -235,8 +237,8 @@ const SearchResults = () => {
                                     onClick={() => handlePageChange(currentPage - 1)}
                                     disabled={currentPage === 1}
                                     className={`px-4 py-2 border border-gray-300 rounded-lg transition-colors text-sm font-medium ${currentPage === 1
-                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            : 'hover:bg-gray-50 text-gray-700'
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'hover:bg-gray-50 text-gray-700'
                                         }`}
                                 >
                                     Previous
@@ -254,8 +256,8 @@ const SearchResults = () => {
                                                 key={page}
                                                 onClick={() => handlePageChange(page)}
                                                 className={`px-4 py-2 rounded-lg font-medium text-sm transition-colors ${currentPage === page
-                                                        ? 'bg-orange-600 text-white shadow-md'
-                                                        : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
+                                                    ? 'bg-orange-600 text-white shadow-md'
+                                                    : 'border border-gray-300 hover:bg-gray-50 text-gray-700'
                                                     }`}
                                             >
                                                 {page}
@@ -271,8 +273,8 @@ const SearchResults = () => {
                                     onClick={() => handlePageChange(currentPage + 1)}
                                     disabled={currentPage === totalPages}
                                     className={`px-4 py-2 border border-gray-300 rounded-lg transition-colors text-sm font-medium ${currentPage === totalPages
-                                            ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                            : 'hover:bg-gray-50 text-gray-700'
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : 'hover:bg-gray-50 text-gray-700'
                                         }`}
                                 >
                                     Next

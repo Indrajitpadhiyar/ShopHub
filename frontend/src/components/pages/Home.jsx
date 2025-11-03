@@ -42,7 +42,7 @@ const Home = () => {
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4">
                                 <motion.a
-                                    href="/shop"
+                                    href="/products"
                                     whileHover={{ scale: 1.05 }}
                                     whileTap={{ scale: 0.95 }}
                                     className="px-8 py-4 bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all flex items-center justify-center space-x-2"
