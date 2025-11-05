@@ -77,23 +77,16 @@ export const login = (email, password) => async (dispatch) => {
 // Register
 export const register = (userData) => async (dispatch) => {
   try {
-    dispatch({ type: USER_REGISTER_REQUEST });
+    dispatch({ type: "USER_REGISTER_REQUEST" });
 
-    const config = {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    };
+    const config = { headers: { "Content-Type": "multipart/form-data" } };
+    const { data } = await axios.post("/api/v1/register", userData, config);
 
-    const { data } = await axios.post(`/api/v1/register`, userData, config);
-
-    // Store token in localStorage
     localStorage.setItem("token", data.token);
-
-    dispatch({ type: USER_REGISTER_SUCCESS, payload: data.user });
+    dispatch({ type: "USER_REGISTER_SUCCESS", payload: data.user });
   } catch (error) {
     dispatch({
-      type: USER_REGISTER_FAIL,
+      type: "USER_REGISTER_FAIL",
       payload: error.response?.data?.message || "Registration failed",
     });
   }

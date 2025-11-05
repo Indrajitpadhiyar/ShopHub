@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { loadUser } from './redux/actions/user.action';
+import { loadUser } from './redux/actions/user.Action';
 import Home from './components/pages/Home';
 import AllProducts from './components/pages/AllProducts';
 import ProductDetails from './components/pages/ProductDetails';

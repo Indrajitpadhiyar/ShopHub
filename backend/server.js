@@ -1,29 +1,42 @@
-import 'dotenv/config';
-import http from 'http';
-import app from './app.js';
+// server.js
+import "dotenv/config";
+import app from "./app.js";
+import connectDB from "./src/config/db.js";
+import cloudinary from "cloudinary";
 
 const PORT = process.env.PORT || 5000;
-const server = http.createServer(app);
 
-//handle uncaught exception
+// Cloudinary Config (after dotenv)
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+// Connect to DB
+connectDB();
+
+// Start Server
+const server = app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+// Graceful shutdown
+process.on("SIGINT", () => {
+  console.log("SIGINT received - shutting down");
+  server.close(() => process.exit(0));
+});
+process.on("SIGTERM", () => {
+  console.log("SIGTERM received - shutting down");
+  server.close(() => process.exit(0));
+});
+
 process.on("uncaughtException", (err) => {
-  console.log(`Error: ${err.message}`);
-  console.log("Shutting down the server due to uncaught exception");
+  console.error("Uncaught Exception:", err);
   process.exit(1);
 });
 
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
-
-
-
-//unhandled promise rejection
-
 process.on("unhandledRejection", (err) => {
-  console.log(`Error: ${err.message}`);
-  console.log("Shutting down the server due to unhandled promise rejection");
-  server.close(() => {
-    process.exit(1);
-  });
+  console.error("Unhandled Rejection:", err);
+  server.close(() => process.exit(1));
 });

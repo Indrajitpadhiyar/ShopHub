@@ -4,6 +4,7 @@ import ErrorHandler from "../utils/error.handler.js";
 import catchAsyncError from "../middlewares/catchAysncerror.middleware.js";
 import sendToken from "../utils/JWTtoken.js";
 import sendEmail from "../utils/sendEmail.js";
+import cloudinary from "cloudinary";
 // import { send } from "process";
 
 // Register a user
@@ -11,18 +12,28 @@ import sendEmail from "../utils/sendEmail.js";
 export const registerUser = catchAsyncError(async (req, res, next) => {
   const { name, email, password } = req.body;
 
+  // ---- avatar handling ----
+  let avatar = { public_id: "default", url: "https://via.placeholder.com/150" };
+
+  if (req.files && req.files.avatar) {
+    const file = req.files.avatar;
+    const result = await cloudinary.v2.uploader.upload(file.tempFilePath, {
+      folder: "avatar",
+      width: 150,
+      crop: "scale",
+    });
+    avatar = { public_id: result.public_id, url: result.secure_url };
+  }
+
   const user = await User.create({
     name,
     email,
     password,
-    avatar: {
-      public_id: "this is a sample id",
-      url: "profilePicUrl",
-    },
+    avatar,
   });
+
   sendToken(user, 201, res);
 });
-
 // Login User
 export const loginUser = catchAsyncError(async (req, res, next) => {
   const { email, password } = req.body;

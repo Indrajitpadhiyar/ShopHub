@@ -8,7 +8,7 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-import { clearErrors, login, register } from "../../redux/actions/user.action";
+import { clearErrors, login, register } from "../../redux/actions/user.Action"
 
 const LoginSignUp = () => {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -99,41 +99,31 @@ const LoginSignUp = () => {
     // Signup Handler
     const handleSignup = async (e) => {
         e.preventDefault();
-
         if (signupPassword !== confirmPassword) {
-            setPasswordError("Passwords do not match");
             toast.error("Passwords do not match");
             return;
         }
-        setPasswordError("");
 
         setLoading(true);
-
         const formData = new FormData();
         formData.append("name", signupName);
         formData.append("email", signupEmail);
         formData.append("password", signupPassword);
-        if (avatarFile) formData.append("avatar", avatarFile);
+        if (avatarFile) formData.append("avatar", avatarFile); // Must be "avatar"
 
         try {
             await dispatch(register(formData));
-            // On successful registration, show success message
-            toast.success("Account created successfully! Please login.");
-            // Switch to login form
+            toast.success("Account created! Please login.");
             setIsExpanded(false);
-            // Clear form fields
-            setSignupName("");
-            setSignupEmail("");
-            setSignupPassword("");
-            setConfirmPassword("");
-            setAvatarFile(null);
-            setImagePreview(null);
+            // Clear form
+            setSignupName(""); setSignupEmail(""); setSignupPassword(""); setConfirmPassword("");
+            setAvatarFile(null); setImagePreview(null);
         } catch (err) {
-            toast.error("Registration failed. Please try again.");
+            toast.error("Registration failed");
+        } finally {
             setLoading(false);
         }
     };
-
     // Reset form when switching between login/signup
     const handleToggleForm = (isSignup) => {
         setIsExpanded(isSignup);
