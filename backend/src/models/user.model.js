@@ -38,6 +38,14 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: "user",
   },
+  shippingInfo: {
+    address: { type: String },
+    city: { type: String },
+    state: { type: String },
+    country: { type: String, default: "India" },
+    pinCode: { type: Number },
+    phoneNo: { type: Number },
+  },
   addToCart: [
     {
       productId: {
@@ -50,6 +58,7 @@ const userSchema = new mongoose.Schema({
       },
     },
   ],
+
   resetPasswordToken: String,
   resetPasswordExpire: Date,
 });

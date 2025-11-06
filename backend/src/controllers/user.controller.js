@@ -5,7 +5,12 @@ import catchAsyncError from "../middlewares/catchAysncerror.middleware.js";
 import sendToken from "../utils/JWTtoken.js";
 import sendEmail from "../utils/sendEmail.js";
 import cloudinary from "cloudinary";
-// import { send } from "process";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Register a user
 
@@ -171,9 +176,35 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
   const newUserData = {
     name: req.body.name,
     email: req.body.email,
+    shippingInfo: {
+      address: req.body.address,
+      city: req.body.city,
+      state: req.body.state,
+      country: req.body.country || "India",
+      pinCode: req.body.pinCode,
+      phoneNo: req.body.phoneNo,
+    },
   };
 
-  // we will add cloudnary later
+  // Handle Avatar
+  if (req.file) {
+    const user = await User.findById(req.user.id);
+
+    if (user.avatar?.public_id) {
+      await cloudinary.v2.uploader.destroy(user.avatar.public_id);
+    }
+
+    const result = await cloudinary.v2.uploader.upload(req.file.path, {
+      folder: "avatars",
+      width: 150,
+      crop: "scale",
+    });
+
+    newUserData.avatar = {
+      public_id: result.public_id,
+      url: result.secure_url,
+    };
+  }
 
   const user = await User.findByIdAndUpdate(req.user.id, newUserData, {
     new: true,
@@ -183,9 +214,9 @@ export const updateProfile = catchAsyncError(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
+    user,
   });
 });
-
 // get all users (admin)
 export const getAllUsers = catchAsyncError(async (req, res, next) => {
   const users = await User.find();

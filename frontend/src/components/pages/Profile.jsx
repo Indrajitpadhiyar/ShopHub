@@ -10,19 +10,28 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { logout } from "../../redux/actions/user.Action";
+import { logout, updateUser, clearErrors } from "../../redux/actions/user.Action";
 import ProfileSettings from "../layouts/ProfileSettings";
 
 const Profile = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { user, isAuthenticated } = useSelector((state) => state.user);
+    const { user, isAuthenticated, loading, error } = useSelector((state) => state.user);
 
     const [activeSection, setActiveSection] = useState("profile");
 
+    // Redirect if not logged-in
     useEffect(() => {
         if (!isAuthenticated) navigate("/login");
     }, [isAuthenticated, navigate]);
+
+    // Show errors
+    useEffect(() => {
+        if (error) {
+            alert(error);
+            dispatch(clearErrors());
+        }
+    }, [error, dispatch]);
 
     const isAdmin = user?.role === "admin";
 
@@ -31,11 +40,16 @@ const Profile = () => {
         navigate("/");
     };
 
+    const handleProfileSave = async (formData) => {
+        await dispatch(updateUser(formData));
+        if (!loading && !error) alert("Profile updated!");
+    };
+
     const navItems = [
         { id: "home", label: "Home", icon: <Home size={20} />, href: "/" },
-        { id: "profile", label: "Profile Settings", icon: <User size={20} /> },
-        { id: "orders", label: "My Orders", icon: <Package size={20} /> },
-        ...(isAdmin ? [{ id: "admin", label: "Admin Dashboard", icon: <Shield size={20} /> }] : []),
+        { id: "profile", label: "Profile", icon: <User size={20} /> },
+        { id: "orders", label: "Orders", icon: <Package size={20} /> },
+        ...(isAdmin ? [{ id: "admin", label: "Admin", icon: <Shield size={20} /> }] : []),
     ];
 
     const container = {
@@ -49,8 +63,13 @@ const Profile = () => {
         hidden: { y: 20, opacity: 0 },
         visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 120 } },
     };
-    const avatarHover = { scale: 1.12, rotate: 6, transition: { type: "spring", stiffness: 400 } };
+    const avatarHover = {
+        scale: 1.12,
+        rotate: 6,
+        transition: { type: "spring", stiffness: 400 },
+    };
 
+    /* ---------- Sections ---------- */
     const OrdersSection = () => (
         <motion.div variants={child} className="space-y-4">
             <h3 className="text-xl font-semibold text-orange-900">Recent Orders</h3>
@@ -72,7 +91,10 @@ const Profile = () => {
                     </div>
                     <div className="text-right">
                         <p className="font-semibold text-orange-900">{o.total}</p>
-                        <p className={`text-sm font-medium ${o.status === "Delivered" ? "text-green-600" : "text-orange-600"}`}>
+                        <p
+                            className={`text-sm font-medium ${o.status === "Delivered" ? "text-green-600" : "text-orange-600"
+                                }`}
+                        >
                             {o.status}
                         </p>
                     </div>
@@ -122,91 +144,132 @@ const Profile = () => {
         </motion.div>
     );
 
-    return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex h-screen w-full flex-col overflow-hidden bg-gradient-to-br from-orange-50 via-white to-orange-50"
+    /* ---------- Sidebar (Desktop) ---------- */
+    const Sidebar = () => (
+        <motion.aside
+            variants={container}
+            initial="hidden"
+            animate="visible"
+            className="hidden lg:flex flex-col w-80 bg-white shadow-xl border-r border-orange-100"
         >
+            <motion.div
+                variants={child}
+                className="flex flex-col items-center p-6 border-b border-orange-100"
+            >
+                <motion.div variants={avatarHover} whileHover="hover">
+                    {user?.avatar?.url ? (
+                        <img
+                            src={user.avatar.url}
+                            alt={user.name}
+                            className="h-20 w-20 rounded-full object-cover shadow-md ring-4 ring-orange-100"
+                        />
+                    ) : (
+                        <UserAvatar user={user} size="h-20 w-20" textSize="text-4xl" />
+                    )}
+                </motion.div>
+                <h2 className="mt-3 text-lg font-semibold text-orange-900">{user?.name}</h2>
+                <p className="text-sm text-orange-600">{user?.email}</p>
+                {isAdmin && (
+                    <span className="mt-2 flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
+                        <Shield size={14} /> Admin
+                    </span>
+                )}
+            </motion.div>
+
+            <nav className="flex-1 space-y-1 p-4">
+                {navItems.map((item, i) => (
+                    <motion.div
+                        key={item.id}
+                        initial={{ x: -30, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        transition={{ delay: i * 0.05 }}
+                    >
+                        <NavItem
+                            icon={item.icon}
+                            label={item.label}
+                            active={activeSection === item.id}
+                            onClick={() => {
+                                if (item.href) navigate(item.href);
+                                else if (item.id !== "home") setActiveSection(item.id);
+                            }}
+                        />
+                    </motion.div>
+                ))}
+                <motion.button
+                    whileHover={{ scale: 1.05, x: 6 }}
+                    whileTap={{ scale: 0.95 }}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.4 }}
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-600 hover:bg-red-50"
+                >
+                    <motion.div
+                        animate={{ rotate: [0, 12, -12, 0] }}
+                        transition={{ repeat: Infinity, duration: 2 }}
+                    >
+                        <LogOut size={20} />
+                    </motion.div>
+                    <span className="font-medium">Logout</span>
+                </motion.button>
+            </nav>
+        </motion.aside>
+    );
+
+    /* ---------- Mobile Bottom Tabs ---------- */
+    const MobileTabs = () => (
+        <div className="lg:hidden fixed inset-x-0 bottom-0 bg-white border-t border-orange-100 z-50">
+            <div className="flex justify-around py-2">
+                {navItems.map((item) => (
+                    <button
+                        key={item.id}
+                        onClick={() => {
+                            if (item.href) navigate(item.href);
+                            else if (item.id !== "home") setActiveSection(item.id);
+                        }}
+                        className={`flex flex-col items-center p-2 rounded-lg transition ${activeSection === item.id ? "text-orange-600" : "text-orange-400"
+                            }`}
+                    >
+                        {item.icon}
+                        <span className="text-xs mt-1">{item.label}</span>
+                    </button>
+                ))}
+                <button
+                    onClick={handleLogout}
+                    className="flex flex-col items-center p-2 text-red-500"
+                >
+                    <LogOut size={20} />
+                    <span className="text-xs mt-1">Logout</span>
+                </button>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="flex h-screen flex-col bg-gradient-to-br from-orange-50 via-white to-orange-50">
+            {/* Sticky Header */}
             <motion.header
                 initial={{ y: -30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 120 }}
-                className="bg-white/80 backdrop-blur-sm shadow-sm py-4 text-center"
+                className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm shadow-sm py-4 text-center"
             >
                 <h1 className="text-2xl lg:text-3xl font-bold text-orange-800">My Account</h1>
                 <p className="text-sm text-orange-600">Manage everything in one place</p>
             </motion.header>
 
-            <div className="flex flex-1 flex-col lg:flex-row">
-                <motion.aside
-                    variants={container}
-                    initial="hidden"
-                    animate="visible"
-                    className="w-full bg-white shadow-xl lg:w-80 lg:border-r lg:border-orange-100"
-                >
+            <div className="flex flex-1 overflow-hidden">
+                {/* Desktop Sidebar */}
+                <Sidebar />
+
+                {/* Main Content – scrolls when needed */}
+                <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 p-4 lg:p-8">
                     <motion.div
-                        variants={child}
-                        className="flex flex-col items-center p-6 border-b border-orange-100"
+                        variants={container}
+                        initial="hidden"
+                        animate="visible"
+                        className="mx-auto max-w-4xl"
                     >
-                        <motion.div variants={avatarHover} whileHover="hover">
-                            {user?.avatar?.url ? (
-                                <img
-                                    src={user.avatar.url}
-                                    alt={user.name}
-                                    className="h-20 w-20 rounded-full object-cover shadow-md ring-4 ring-orange-100"
-                                />
-                            ) : (
-                                <UserAvatar user={user} size="h-20 w-20" textSize="text-4xl" />
-                            )}
-                        </motion.div>
-                        <h2 className="mt-3 text-lg font-semibold text-orange-900">{user?.name}</h2>
-                        <p className="text-sm text-orange-600">{user?.email}</p>
-                        {isAdmin && (
-                            <span className="mt-2 flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
-                                <Shield size={14} /> Admin
-                            </span>
-                        )}
-                    </motion.div>
-
-                    <nav className="flex-1 space-y-1 p-4">
-                        {navItems.map((item, i) => (
-                            <motion.div
-                                key={item.id}
-                                initial={{ x: -30, opacity: 0 }}
-                                animate={{ x: 0, opacity: 1 }}
-                                transition={{ delay: i * 0.05 }}
-                            >
-                                <NavItem
-                                    icon={item.icon}
-                                    label={item.label}
-                                    active={activeSection === item.id}
-                                    onClick={() => {
-                                        if (item.href) navigate(item.href);
-                                        else if (item.id !== "home") setActiveSection(item.id);
-                                    }}
-                                />
-                            </motion.div>
-                        ))}
-                        <motion.button
-                            whileHover={{ scale: 1.05, x: 6 }}
-                            whileTap={{ scale: 0.95 }}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.4 }}
-                            onClick={handleLogout}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-600 hover:bg-red-50"
-                        >
-                            <motion.div animate={{ rotate: [0, 12, -12, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
-                                <LogOut size={20} />
-                            </motion.div>
-                            <span className="font-medium">Logout</span>
-                        </motion.button>
-                    </nav>
-                </motion.aside>
-
-                <main className="flex-1 overflow-y-auto bg-gradient-to-br from-orange-50 via-white to-orange-50 p-4 lg:p-8">
-                    <motion.div variants={container} initial="hidden" animate="visible" className="mx-auto max-w-4xl">
                         <AnimatePresence mode="wait">
                             {activeSection === "profile" && (
                                 <motion.section
@@ -218,16 +281,13 @@ const Profile = () => {
                                 >
                                     <ProfileSettings
                                         user={user}
-                                        onSave={(data) => {
-                                            // TODO: dispatch update profile action
-                                            console.log("Profile saved:", data);
-                                        }}
-                                        onCancel={() => {
-                                            console.log("Edit cancelled");
-                                        }}
+                                        loading={loading}
+                                        onSave={handleProfileSave}
+                                        onCancel={() => console.log("Edit cancelled")}
                                     />
                                 </motion.section>
                             )}
+
                             {activeSection === "orders" && (
                                 <motion.section
                                     key="orders"
@@ -239,6 +299,7 @@ const Profile = () => {
                                     <OrdersSection />
                                 </motion.section>
                             )}
+
                             {activeSection === "admin" && isAdmin && (
                                 <motion.section
                                     key="admin"
@@ -254,14 +315,22 @@ const Profile = () => {
                     </motion.div>
                 </main>
             </div>
-        </motion.div>
+
+            {/* Mobile Bottom Tabs */}
+            <MobileTabs />
+        </div>
     );
 };
 
+/* ---------- Helper Components ---------- */
 const UserAvatar = ({ user, size = "h-24 w-24", textSize = "text-3xl" }) => {
     if (user?.avatar?.url)
         return (
-            <img src={user.avatar.url} alt={user.name} className={`${size} rounded-full object-cover shadow-lg ring-4 ring-orange-100`} />
+            <img
+                src={user.avatar.url}
+                alt={user.name}
+                className={`${size} rounded-full object-cover shadow-lg ring-4 ring-orange-100`}
+            />
         );
 
     const letter = user?.name?.charAt(0).toUpperCase() || "U";
@@ -277,14 +346,17 @@ const UserAvatar = ({ user, size = "h-24 w-24", textSize = "text-3xl" }) => {
     const bg = colors[letter] || "bg-orange-500";
 
     return (
-        <div className={`${size} ${bg} rounded-full flex items-center justify-center text-white font-bold ${textSize} shadow-lg ring-4 ring-orange-50`}>
+        <div
+            className={`${size} ${bg} rounded-full flex items-center justify-center text-white font-bold ${textSize} shadow-lg ring-4 ring-orange-50`}
+        >
             {letter}
         </div>
     );
 };
 
 const NavItem = ({ icon, label, active, onClick }) => {
-    const base = "flex w-full items-center gap-3 rounded-lg px-4 py-3 transition font-medium text-sm lg:text-base";
+    const base =
+        "flex w-full items-center gap-3 rounded-lg px-4 py-3 transition font-medium text-sm lg:text-base";
     const cls = active
         ? `${base} bg-orange-100 text-orange-700 border border-orange-200`
         : `${base} text-orange-700 hover:bg-orange-50 border border-transparent`;

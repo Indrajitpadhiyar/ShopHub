@@ -5,6 +5,9 @@ import {
   USER_REGISTER_REQUEST,
   USER_REGISTER_SUCCESS,
   USER_REGISTER_FAIL,
+  USER_UPDATE_REQUEST,
+  USER_UPDATE_SUCCESS,
+  USER_UPDATE_FAIL,
   USER_LOAD_REQUEST,
   USER_LOAD_SUCCESS,
   USER_LOAD_FAIL,
@@ -16,7 +19,7 @@ import {
 const initialState = {
   user: null,
   isAuthenticated: false,
-  loading: true, // Change to true initially to check authentication
+  loading: true,
   error: null,
 };
 
@@ -24,6 +27,7 @@ export const userReducer = (state = initialState, action) => {
   switch (action.type) {
     case USER_LOGIN_REQUEST:
     case USER_REGISTER_REQUEST:
+    case USER_UPDATE_REQUEST:
     case USER_LOAD_REQUEST:
       return {
         ...state,
@@ -33,6 +37,7 @@ export const userReducer = (state = initialState, action) => {
 
     case USER_LOGIN_SUCCESS:
     case USER_REGISTER_SUCCESS:
+    case USER_UPDATE_SUCCESS:
     case USER_LOAD_SUCCESS:
       return {
         ...state,
@@ -44,6 +49,7 @@ export const userReducer = (state = initialState, action) => {
 
     case USER_LOGIN_FAIL:
     case USER_REGISTER_FAIL:
+    case USER_UPDATE_FAIL:
     case USER_LOAD_FAIL:
       return {
         ...state,
