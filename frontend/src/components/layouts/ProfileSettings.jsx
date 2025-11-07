@@ -147,7 +147,7 @@ const ProfileSettings = () => {
                         transition={{ delay: i * 0.05 }}
                         className={f.fullWidth ? "lg:col-span-2" : ""}
                     >
-                        <label className="block text-sm font-medium text-orange-800 flex items-center gap-1">
+                        <label className=" text-sm font-medium text-orange-800 flex items-center gap-1">
                             {f.icon} {f.label}
                         </label>
                         <motion.input

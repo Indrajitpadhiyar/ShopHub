@@ -9,8 +9,7 @@ import {
   CLEAR_ERRORS,
 } from "../constans/product.Constans";
 
-export const getProduct =
-  () =>
+export const getProduct =() =>
   async (dispatch) => {
     try {
       dispatch({ type: ALL_PRODUCT_REQUEST });

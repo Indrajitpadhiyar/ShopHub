@@ -5,13 +5,16 @@ import {
   productDetailsReducer,
   productReducer,
 } from "./redux/reducer/product.Reducer";
-
+import cartReducer from "./redux/slices/cartSlice";
 import { userReducer } from "./redux/reducer/user.Reducer";
+import wishlistReducer from "./redux/slices/wishlistSlice";
 
 const reducer = combineReducers({
   products: productReducer,
   productDetails: productDetailsReducer,
   user: userReducer,
+  cart: cartReducer,
+  wishlist: wishlistReducer,
 });
 
 let initialState = {};

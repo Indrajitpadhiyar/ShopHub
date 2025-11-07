@@ -1,10 +1,9 @@
 // src/components/Navbar.jsx
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import {
     Search,
-    ShoppingCart,
     Menu,
     X,
     Home,
@@ -15,11 +14,14 @@ import {
     LogOut,
     Package,
     Settings,
-    Shield
-} from 'lucide-react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { logout } from '../../redux/actions/user.Action';
+    Shield,
+} from "lucide-react";
+import { useSelector, useDispatch } from "react-redux";
+import { Link } from "react-router-dom";
+import { logout } from "../../redux/actions/user.Action";
+
+// Import the new cart component
+import CartButton from "./CartButton";
 
 const SearchDropdown = ({
     query,
@@ -30,7 +32,6 @@ const SearchDropdown = ({
 }) => {
     const dropdownRef = useRef(null);
 
-    // Close on outside click
     useEffect(() => {
         if (!isOpen) return;
         const handler = (e) => {
@@ -38,8 +39,8 @@ const SearchDropdown = ({
                 onClose();
             }
         };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
     }, [isOpen, onClose]);
 
     if (!isOpen) return null;
@@ -80,7 +81,7 @@ const SearchDropdown = ({
                                     className="flex items-center gap-4 px-5 py-3 hover:bg-orange-50 transition-colors"
                                 >
                                     <img
-                                        src={product.images?.[0]?.url || '/placeholder.jpg'}
+                                        src={product.images?.[0]?.url || "/placeholder.jpg"}
                                         alt={product.name}
                                         className="w-12 h-12 object-cover rounded-lg"
                                     />
@@ -120,7 +121,6 @@ const SearchDropdown = ({
     );
 };
 
-// User Avatar Component - Directly in Navbar
 const UserAvatar = ({ user, size = "w-8 h-8", textSize = "text-sm" }) => {
     if (user?.avatar?.url) {
         return (
@@ -132,47 +132,63 @@ const UserAvatar = ({ user, size = "w-8 h-8", textSize = "text-sm" }) => {
         );
     }
 
-    // If no avatar, show first letter of name with different color
-    const firstLetter = user?.name ? user.name.charAt(0).toUpperCase() : 'U';
+    const firstLetter = user?.name ? user.name.charAt(0).toUpperCase() : "U";
 
-    // Different colors based on first letter for consistency
     const getColorClass = (letter) => {
         const colors = {
-            'A': 'bg-red-500', 'B': 'bg-blue-500', 'C': 'bg-green-500', 'D': 'bg-yellow-500',
-            'E': 'bg-purple-500', 'F': 'bg-pink-500', 'G': 'bg-indigo-500', 'H': 'bg-teal-500',
-            'I': 'bg-orange-500', 'J': 'bg-red-600', 'K': 'bg-blue-600', 'L': 'bg-green-600',
-            'M': 'bg-yellow-600', 'N': 'bg-purple-600', 'O': 'bg-pink-600', 'P': 'bg-indigo-600',
-            'Q': 'bg-teal-600', 'R': 'bg-orange-600', 'S': 'bg-red-400', 'T': 'bg-blue-400',
-            'U': 'bg-green-400', 'V': 'bg-yellow-400', 'W': 'bg-purple-400', 'X': 'bg-pink-400',
-            'Y': 'bg-indigo-400', 'Z': 'bg-teal-400'
+            A: "bg-red-500",
+            B: "bg-blue-500",
+            C: "bg-green-500",
+            D: "bg-yellow-500",
+            E: "bg-purple-500",
+            F: "bg-pink-500",
+            G: "bg-indigo-500",
+            H: "bg-teal-500",
+            I: "bg-orange-500",
+            J: "bg-red-600",
+            K: "bg-blue-600",
+            L: "bg-green-600",
+            M: "bg-yellow-600",
+            N: "bg-purple-600",
+            O: "bg-pink-600",
+            P: "bg-indigo-600",
+            Q: "bg-teal-600",
+            R: "bg-orange-600",
+            S: "bg-red-400",
+            T: "bg-blue-400",
+            U: "bg-green-400",
+            V: "bg-yellow-400",
+            W: "bg-purple-400",
+            X: "bg-pink-400",
+            Y: "bg-indigo-400",
+            Z: "bg-teal-400",
         };
-
-        return colors[letter] || 'bg-gray-500';
+        return colors[letter] || "bg-gray-500";
     };
 
     const colorClass = getColorClass(firstLetter);
 
     return (
-        <div className={`${size} ${colorClass} rounded-full flex items-center justify-center text-white font-bold ${textSize} shadow-md`}>
+        <div
+            className={`${size} ${colorClass} rounded-full flex items-center justify-center text-white font-bold ${textSize} shadow-md`}
+        >
             {firstLetter}
         </div>
     );
 };
 
-// User Dropdown Menu
 const UserDropdown = ({ user, onClose, onLogout }) => {
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
 
-    // Close dropdown on outside click
     useEffect(() => {
         const handler = (e) => {
             if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
                 onClose();
             }
         };
-        document.addEventListener('mousedown', handler);
-        return () => document.removeEventListener('mousedown', handler);
+        document.addEventListener("mousedown", handler);
+        return () => document.removeEventListener("mousedown", handler);
     }, [onClose]);
 
     const handleNavigation = (path) => {
@@ -190,25 +206,21 @@ const UserDropdown = ({ user, onClose, onLogout }) => {
                 transition={{ duration: 0.2 }}
                 className="absolute right-0 top-full mt-2 bg-white rounded-2xl shadow-2xl overflow-hidden z-50 min-w-48 border border-gray-100"
             >
-                {/* User Info */}
                 <div className="p-4 border-b border-gray-100 bg-gradient-to-r from-orange-50 to-orange-100">
                     <div className="flex items-center gap-3">
                         <UserAvatar user={user} size="w-10 h-10" textSize="text-base" />
                         <div className="flex-1 min-w-0">
                             <p className="font-semibold text-gray-800 truncate text-sm">
-                                {user?.name || 'User'}
+                                {user?.name || "User"}
                             </p>
-                            <p className="text-xs text-gray-500 truncate">
-                                {user?.email}
-                            </p>
+                            <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Dropdown Items */}
                 <div className="p-2">
                     <button
-                        onClick={() => handleNavigation('/profile')}
+                        onClick={() => handleNavigation("/profile")}
                         className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-orange-50 transition-colors text-gray-700 w-full text-left"
                     >
                         <User className="w-4 h-4" />
@@ -216,7 +228,7 @@ const UserDropdown = ({ user, onClose, onLogout }) => {
                     </button>
 
                     <button
-                        onClick={() => handleNavigation('/profile/orders')}
+                        onClick={() => handleNavigation("/profile/orders")}
                         className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-orange-50 transition-colors text-gray-700 w-full text-left"
                     >
                         <Package className="w-4 h-4" />
@@ -224,17 +236,16 @@ const UserDropdown = ({ user, onClose, onLogout }) => {
                     </button>
 
                     <button
-                        onClick={() => handleNavigation('/profile/settings')}
+                        onClick={() => handleNavigation("/profile/settings")}
                         className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-orange-50 transition-colors text-gray-700 w-full text-left"
                     >
                         <Settings className="w-4 h-4" />
                         <span className="text-sm">Settings</span>
                     </button>
 
-                    {/* Admin Dashboard - Only for Admin */}
-                    {user?.role === 'admin' && (
+                    {user?.role === "admin" && (
                         <button
-                            onClick={() => handleNavigation('/admin/dashboard')}
+                            onClick={() => handleNavigation("/admin/dashboard")}
                             className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-purple-50 transition-colors text-purple-700 w-full text-left border-t border-gray-100 mt-2 pt-2"
                         >
                             <Shield className="w-4 h-4" />
@@ -260,71 +271,61 @@ const UserDropdown = ({ user, onClose, onLogout }) => {
     );
 };
 
-// ──────────────────────────────────────────────────────────────
-// Main Navbar Component
-// ──────────────────────────────────────────────────────────────
 const Navbar = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState("");
     const [showDropdown, setShowDropdown] = useState(false);
     const [showUserDropdown, setShowUserDropdown] = useState(false);
 
-    // Get user data from Redux - ALL HOOKS MUST BE CALLED BEFORE ANY CONDITIONAL RETURNS
     const { isAuthenticated, user, loading } = useSelector((state) => state.user);
     const { products = [] } = useSelector((state) => state.products || {});
 
-    // ──── FILTER LOGIC (exact → fuzzy fallback) ────
     const filtered = useMemo(() => {
         if (!searchQuery.trim()) return [];
         const q = searchQuery.toLowerCase();
 
-        const exact = products.filter((p) =>
-            p.name.toLowerCase().includes(q)
-        );
-
+        const exact = products.filter((p) => p.name.toLowerCase().includes(q));
         if (exact.length > 0) return exact.slice(0, 8);
 
-        // Fallback: words that start with query
         return products
             .filter((p) =>
                 p.name
                     .toLowerCase()
-                    .split(' ')
+                    .split(" ")
                     .some((w) => w.startsWith(q))
             )
             .slice(0, 8);
     }, [searchQuery, products]);
 
-    // Close dropdown on route change
     useEffect(() => {
         const unlisten = navigate((loc) => {
             setShowDropdown(false);
-            setSearchQuery('');
+            setSearchQuery("");
         });
         return unlisten;
     }, [navigate]);
 
     const handleKeyDown = (e) => {
-        if (e.key === 'Enter' && searchQuery.trim()) {
+        if (e.key === "Enter" && searchQuery.trim()) {
             navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
             setShowDropdown(false);
-            setSearchQuery('');
+            setSearchQuery("");
         }
     };
 
     const handleLogout = () => {
         dispatch(logout());
         setShowUserDropdown(false);
-        navigate('/');
+        navigate("/");
     };
 
     const navItems = [
-        { id: 'home', label: 'Home', icon: Home, path: '/' },
-        { id: 'products', label: 'All Products', icon: Grid, path: '/products' },
-        { id: 'deals', label: 'Hot Deals', icon: Tag, path: '/deals' },
-        { id: 'wishlist', label: 'Wishlist', icon: Heart, path: '/wishlist' },
+        { id: "home", label: "Home", icon: Home, path: "/" },
+        { id: "products", label: "All Products", icon: Grid, path: "/products" },
+        { id: "deals", label: "Hot Deals", icon: Tag, path: "/deals" },
+        { id: "wishlist", label: "Wishlist", icon: Heart, path: "/wishlist" },
     ];
 
     const handleNavClick = (path) => {
@@ -334,24 +335,18 @@ const Navbar = () => {
 
     const currentPath = window.location.pathname;
 
-    // ✅ NOW we can do conditional return AFTER all hooks
     if (loading) {
         return (
             <nav className="bg-white shadow-lg sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-20">
-                        {/* Logo Loading */}
                         <div className="flex items-center space-x-3">
                             <div className="w-12 h-12 bg-gray-200 rounded-full animate-pulse"></div>
                             <div className="h-6 w-24 bg-gray-200 rounded animate-pulse"></div>
                         </div>
-
-                        {/* Search Bar Loading */}
                         <div className="hidden md:flex flex-1 max-w-2xl mx-8">
                             <div className="w-full h-12 bg-gray-200 rounded-full animate-pulse"></div>
                         </div>
-
-                        {/* Right Side Loading */}
                         <div className="flex items-center space-x-4">
                             <div className="w-8 h-8 bg-gray-200 rounded-full animate-pulse"></div>
                             <div className="w-20 h-8 bg-gray-200 rounded-full animate-pulse"></div>
@@ -367,13 +362,13 @@ const Navbar = () => {
         <nav className="bg-white shadow-lg sticky top-0 z-50">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
-                    {/* ─── LOGO ─── */}
+                    {/* LOGO */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5 }}
                         className="flex items-center space-x-3 cursor-pointer"
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate("/")}
                     >
                         <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-lg">
                             <img
@@ -387,7 +382,7 @@ const Navbar = () => {
                         </span>
                     </motion.div>
 
-                    {/* ─── DESKTOP SEARCH BAR ─── */}
+                    {/* DESKTOP SEARCH BAR */}
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -410,35 +405,24 @@ const Navbar = () => {
                             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-orange-500 transition-colors" />
                         </div>
 
-                        {/* Dropdown */}
                         <SearchDropdown
                             query={searchQuery}
                             results={filtered}
                             isOpen={showDropdown}
                             onSelect={() => {
-                                setSearchQuery('');
+                                setSearchQuery("");
                                 setShowDropdown(false);
                             }}
                             onClose={() => setShowDropdown(false)}
                         />
                     </motion.div>
 
-                    {/* ─── RIGHT SIDE (Cart, Login/User, Mobile Menu) ─── */}
+                    {/* RIGHT SIDE */}
                     <div className="flex items-center space-x-4">
-                        {/* Cart */}
-                        <motion.button
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => navigate('/cart')}
-                            className="relative p-2 hover:bg-orange-50 rounded-full transition-all duration-300"
-                        >
-                            <ShoppingCart className="w-6 h-6 text-gray-700" />
-                            <span className="absolute -top-1 -right-1 bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
-                                3
-                            </span>
-                        </motion.button>
+                        {/* CART – NOW A SEPARATE COMPONENT */}
+                        <CartButton />
 
-                        {/* Login / User Profile */}
+                        {/* LOGIN / USER PROFILE */}
                         <div className="relative">
                             <AnimatePresence mode="wait">
                                 {isAuthenticated ? (
@@ -455,10 +439,8 @@ const Navbar = () => {
                                     >
                                         <UserAvatar user={user} />
                                         <span className="hidden sm:inline font-medium">
-                                            {user?.name?.split(' ')[0] || 'User'}
+                                            {user?.name?.split(" ")[0] || "User"}
                                         </span>
-
-                                        {/* Hover indicator */}
                                         <div className="absolute inset-0 rounded-full bg-white opacity-0 group-hover:opacity-20 transition-opacity duration-300" />
                                     </motion.button>
                                 ) : (
@@ -469,7 +451,7 @@ const Navbar = () => {
                                         exit={{ opacity: 0, scale: 0.8 }}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        onClick={() => navigate('/login')}
+                                        onClick={() => navigate("/login")}
                                         className="bg-gradient-to-r from-orange-500 to-orange-600 text-white px-6 py-2 rounded-full hover:shadow-lg transition-all duration-300 font-medium"
                                     >
                                         Login
@@ -477,7 +459,6 @@ const Navbar = () => {
                                 )}
                             </AnimatePresence>
 
-                            {/* User Dropdown Menu - Shows on hover and click */}
                             {isAuthenticated && showUserDropdown && (
                                 <div
                                     onMouseLeave={() => setShowUserDropdown(false)}
@@ -492,7 +473,7 @@ const Navbar = () => {
                             )}
                         </div>
 
-                        {/* Mobile Menu Toggle */}
+                        {/* MOBILE MENU TOGGLE */}
                         <motion.button
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
@@ -504,7 +485,7 @@ const Navbar = () => {
                     </div>
                 </div>
 
-                {/* ─── DESKTOP NAV LINKS ─── */}
+                {/* DESKTOP NAV LINKS */}
                 <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -527,21 +508,21 @@ const Navbar = () => {
                             >
                                 <div
                                     className={`absolute inset-0 rounded-full transition-all duration-500 ${isActive
-                                        ? 'bg-gradient-to-r from-orange-500 to-orange-600 scale-100 opacity-100'
-                                        : 'bg-orange-100 scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100'
+                                            ? "bg-gradient-to-r from-orange-500 to-orange-600 scale-100 opacity-100"
+                                            : "bg-orange-100 scale-0 opacity-0 group-hover:scale-100 group-hover:opacity-100"
                                         }`}
                                 />
                                 <div className="relative flex items-center space-x-2">
                                     <Icon
                                         className={`w-5 h-5 transition-colors duration-300 ${isActive
-                                            ? 'text-white'
-                                            : 'text-gray-700 group-hover:text-orange-600'
+                                                ? "text-white"
+                                                : "text-gray-700 group-hover:text-orange-600"
                                             }`}
                                     />
                                     <span
                                         className={`font-medium transition-colors duration-300 ${isActive
-                                            ? 'text-white'
-                                            : 'text-gray-700 group-hover:text-orange-600'
+                                                ? "text-white"
+                                                : "text-gray-700 group-hover:text-orange-600"
                                             }`}
                                     >
                                         {item.label}
@@ -555,7 +536,7 @@ const Navbar = () => {
                     })}
                 </motion.div>
 
-                {/* ─── MOBILE SEARCH ─── */}
+                {/* MOBILE SEARCH */}
                 <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -578,13 +559,12 @@ const Navbar = () => {
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     </div>
 
-                    {/* Mobile Dropdown */}
                     <SearchDropdown
                         query={searchQuery}
                         results={filtered}
                         isOpen={showDropdown}
                         onSelect={() => {
-                            setSearchQuery('');
+                            setSearchQuery("");
                             setShowDropdown(false);
                         }}
                         onClose={() => setShowDropdown(false)}
@@ -592,14 +572,14 @@ const Navbar = () => {
                 </motion.div>
             </div>
 
-            {/* ─── MOBILE MENU (Slide Down) ─── */}
+            {/* MOBILE MENU */}
             <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div
                         initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
+                        animate={{ height: "auto", opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.3, ease: 'easeInOut' }}
+                        transition={{ duration: 0.3, ease: "easeInOut" }}
                         className="md:hidden overflow-hidden"
                     >
                         <div className="px-4 pb-4 space-y-2 bg-gradient-to-b from-white to-orange-50">
@@ -616,8 +596,8 @@ const Navbar = () => {
                                         whileHover={{ x: 5 }}
                                         onClick={() => handleNavClick(item.path)}
                                         className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-all duration-300 ${isActive
-                                            ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105'
-                                            : 'bg-white text-gray-700 hover:bg-orange-50 hover:scale-102'
+                                                ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-lg scale-105"
+                                                : "bg-white text-gray-700 hover:bg-orange-50 hover:scale-102"
                                             }`}
                                     >
                                         <Icon className="w-5 h-5" />

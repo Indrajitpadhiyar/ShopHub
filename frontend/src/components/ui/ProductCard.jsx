@@ -1,63 +1,74 @@
-import React, { useState } from 'react';
+// src/components/ProductCard.jsx
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ShoppingCart, Heart, Star, Zap } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { addToCart } from '../../redux/slices/cartSlice';
+import { addToWishlist, removeFromWishlist } from '../../redux/slices/wishlistSlice';
+import toast from 'react-hot-toast';
 
 const ProductCard = ({
-    id,           
-    _id,          
+    _id,
     name,
     price,
-    description,
-    ratings = 0,
     images = [],
     stock = 0,
+    ratings = 0,
     numOfReviews = 0,
 }) => {
-    const [isWishlisted, setIsWishlisted] = useState(false);
-    const [isAdded, setIsAdded] = useState(false);
+    const [isAdding, setIsAdding] = useState(false);
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
+    const { isAuthenticated } = useSelector((state) => state.user);
+    const { wishlistItems } = useSelector((state) => state.wishlist);
 
-    // Safe ID: id ya _id jo bhi ho
-    const productId = id || _id;
-
-    // Agar dono nahi → card mat dikhao (debug ke liye)
-    if (!productId) {
-        console.error("Product ID missing!", { id, _id, name });
-        return null;
-    }
+    const isWishlisted = wishlistItems.some(item => item._id === _id);
 
     const handleAddToCart = (e) => {
-        e.preventDefault();  // Stop Link navigation
+        e.preventDefault();
         e.stopPropagation();
-        if (stock <= 0) return;
-        setIsAdded(true);
-        setTimeout(() => setIsAdded(false), 2000);
+
+        if (!isAuthenticated) {
+            toast.error("Please login to add to cart");
+            navigate('/login');
+            return;
+        }
+        if (stock <= 0) return toast.error("Out of stock!");
+
+        setIsAdding(true);
+        dispatch(addToCart({
+            _id, name, price, image: images[0]?.url, stock, qty: 1
+        }));
+        setTimeout(() => setIsAdding(false), 1000);
     };
 
     const handleWishlist = (e) => {
         e.preventDefault();
         e.stopPropagation();
-        setIsWishlisted(!isWishlisted);
+
+        if (!isAuthenticated) {
+            toast.error("Please login to add to wishlist");
+            navigate('/login');
+            return;
+        }
+
+        if (isWishlisted) {
+            dispatch(removeFromWishlist(_id));
+        } else {
+            dispatch(addToWishlist({
+                _id, name, price, image: images[0]?.url
+            }));
+        }
     };
 
-    const title = name || "Unnamed Product";
     const imageUrl = images[0]?.url || 'https://via.placeholder.com/300x300/eee/aaa?text=No+Image';
-    const isInStock = stock > 0;
 
     return (
-        <Link
-            to={`/product/${productId}`}
-            className="block h-full"
-            style={{ textDecoration: 'none', color: 'inherit' }}
-        >
+        <Link to={`/product/${_id}`} className="block h-full">
             <motion.div
-                layout
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
                 whileHover={{ y: -12, scale: 1.02 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-                className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col h-full cursor-pointer"
+                className="group relative bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col h-full"
                 style={{ minHeight: '460px' }}
             >
                 {/* Wishlist Button */}
@@ -65,94 +76,66 @@ const ProductCard = ({
                     whileHover={{ scale: 1.1 }}
                     whileTap={{ scale: 0.9 }}
                     onClick={handleWishlist}
-                    className="absolute top-3 right-3 z-20 p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-md hover:shadow-lg transition-all"
+                    className="absolute top-3 right-3 z-20 p-2.5 bg-white/90 backdrop-blur-md rounded-full shadow-md"
                 >
                     <Heart
-                        className={`h-5 w-5 transition-colors ${isWishlisted ? 'fill-orange-500 text-orange-500' : 'text-gray-600'
+                        className={`h-5 w-5 transition-all ${isWishlisted
+                            ? 'fill-orange-500 text-orange-500 scale-110'
+                            : 'text-gray-600'
                             }`}
                     />
                 </motion.button>
 
-                {/* IMAGE */}
-                <div className="relative overflow-hidden bg-white h-56 flex-shrink-0 flex items-center justify-center z-10">
+                {/* Image */}
+                <div className="relative overflow-hidden bg-white h-56 flex items-center justify-center">
                     <motion.img
                         src={imageUrl}
-                        alt={title}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                        whileHover={{ scale: 1.05 }}
-                        onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/300x300/eee/aaa?text=No+Image';
-                        }}
+                        alt={name}
+                        className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
 
-                {/* CONTENT */}
-                <div className="p-5 space-y-3 flex flex-col flex-grow z-10">
-                    <h3 className="font-semibold text-gray-800 line-clamp-2 text-lg group-hover:text-orange-600 transition-colors leading-tight">
-                        {title}
+                {/* Content */}
+                <div className="p-5 space-y-3 flex flex-col flex-grow">
+                    <h3 className="font-semibold text-gray-800 line-clamp-2 text-lg group-hover:text-orange-600">
+                        {name}
                     </h3>
 
                     <div className="flex items-center space-x-1">
                         {[...Array(5)].map((_, i) => (
-                            <Star
-                                key={i}
-                                className={`h-4 w-4 ${i < Math.floor(ratings)
-                                        ? 'fill-orange-400 text-orange-400'
-                                        : 'text-gray-300'
-                                    }`}
-                            />
+                            <Star key={i} className={`h-4 w-4 ${i < Math.floor(ratings) ? 'fill-orange-400 text-orange-400' : 'text-gray-300'}`} />
                         ))}
-                        {numOfReviews > 0 && (
-                            <span className="text-xs text-gray-500 ml-1">({numOfReviews})</span>
-                        )}
+                        <span className="text-xs text-gray-500 ml-1">({numOfReviews})</span>
                     </div>
 
-                    <div className="flex items-center space-x-2 mt-auto">
-                        <span className="text-2xl font-bold text-orange-600">
-                            ₹{Number(price).toLocaleString('en-IN')}
-                        </span>
-                    </div>
+                    <span className="text-2xl font-bold text-orange-600">
+                        ₹{Number(price).toLocaleString('en-IN')}
+                    </span>
 
-                    {!isInStock && (
-                        <p className="text-sm text-red-600 font-medium">Out of Stock</p>
-                    )}
+                    {stock <= 0 && <p className="text-sm text-red-600 font-medium">Out of Stock</p>}
 
                     <motion.button
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         onClick={handleAddToCart}
-                        disabled={!isInStock}
-                        className={`w-full py-3 rounded-full font-semibold transition-all flex items-center justify-center space-x-2 mt-auto ${isInStock
-                                ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-md hover:shadow-xl'
-                                : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        disabled={stock <= 0 || isAdding}
+                        className={`w-full py-3 rounded-full font-semibold flex items-center justify-center space-x-2 mt-auto transition-all ${stock > 0
+                            ? 'bg-gradient-to-r from-orange-500 to-yellow-500 text-white shadow-md hover:shadow-xl'
+                            : 'bg-gray-200 text-gray-500 cursor-not-allowed'
                             }`}
                     >
-                        {isAdded ? (
-                            <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                className="flex items-center space-x-1"
-                            >
-                                <Zap className="h-4 w-4" />
-                                <span>Added!</span>
+                        {isAdding ? (
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
+                                <Zap className="h-5 w-5" />
                             </motion.div>
                         ) : (
                             <>
                                 <ShoppingCart className="h-5 w-5" />
-                                <span>{isInStock ? 'Add to Cart' : 'Unavailable'}</span>
+                                <span>{stock > 0 ? 'Add to Cart' : 'Unavailable'}</span>
                             </>
                         )}
                     </motion.button>
                 </div>
-
-                {/* HOVER GLOW */}
-                <motion.div
-                    className="absolute inset-0 rounded-2xl bg-gradient-to-br from-orange-500/30 via-transparent to-transparent opacity-0 pointer-events-none -z-10"
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileHover={{ opacity: 1, scale: 1.1 }}
-                    transition={{ duration: 0.3 }}
-                />
             </motion.div>
         </Link>
     );

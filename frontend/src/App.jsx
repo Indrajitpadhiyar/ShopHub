@@ -8,6 +8,9 @@ import ProductDetails from './components/pages/ProductDetails';
 import SearchResults from './components/pages/SearchResults';
 import LoginSignUp from './components/pages/LoginSignUp';
 import Profile from './components/pages/Profile';
+import Cart from './components/pages/Cart';
+import Wishlist from './components/pages/Wishlist';
+import HotDeals from './components/pages/HotDeals';
 import './app.css';
 
 const App = () => {
@@ -27,6 +30,9 @@ const App = () => {
         <Route path="/search" element={<SearchResults />} />
         <Route path="/login" element={<LoginSignUp />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/wishlist" element={<Wishlist />} />
+        <Route path="/deals" element={<HotDeals />} />
       </Routes>
     </Router>
   );
