@@ -43,6 +43,7 @@ const ProductCard = ({
         setTimeout(() => setIsAdding(false), 1000);
     };
 
+
     const handleWishlist = (e) => {
         e.preventDefault();
         e.stopPropagation();

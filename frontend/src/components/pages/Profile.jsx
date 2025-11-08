@@ -2,16 +2,17 @@
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
-    Package,
     LogOut,
     Shield,
     Home,
     User,
+    ShoppingBag,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { logout, updateUser, clearErrors } from "../../redux/actions/user.Action";
+import { logout, clearErrors } from "../../redux/actions/user.Action";
 import ProfileSettings from "../layouts/ProfileSettings";
+import toast from "react-hot-toast";
 
 const Profile = () => {
     const dispatch = useDispatch();
@@ -28,7 +29,7 @@ const Profile = () => {
     // Show errors
     useEffect(() => {
         if (error) {
-            alert(error);
+            toast.error(error);
             dispatch(clearErrors());
         }
     }, [error, dispatch]);
@@ -40,16 +41,16 @@ const Profile = () => {
         navigate("/");
     };
 
-    const handleProfileSave = async (formData) => {
-        await dispatch(updateUser(formData));
-        if (!loading && !error) alert("Profile updated!");
-    };
-
+    // NAVIGATION ITEMS – Dynamic Label
     const navItems = [
         { id: "home", label: "Home", icon: <Home size={20} />, href: "/" },
         { id: "profile", label: "Profile", icon: <User size={20} /> },
-        { id: "orders", label: "Orders", icon: <Package size={20} /> },
-        ...(isAdmin ? [{ id: "admin", label: "Admin", icon: <Shield size={20} /> }] : []),
+        {
+            id: "orders",
+            label: isAdmin ? "User Orders" : "My Orders", // ← Dynamic
+            icon: <ShoppingBag size={20} />,
+        },
+        ...(isAdmin ? [{ id: "admin", label: "Admin Panel", icon: <Shield size={20} /> }] : []),
     ];
 
     const container = {
@@ -69,13 +70,18 @@ const Profile = () => {
         transition: { type: "spring", stiffness: 400 },
     };
 
-    /* ---------- Sections ---------- */
+    /* ---------- SECTIONS ---------- */
+
+    // ORDERS SECTION (Dynamic Title)
     const OrdersSection = () => (
         <motion.div variants={child} className="space-y-4">
-            <h3 className="text-xl font-semibold text-orange-900">Recent Orders</h3>
+            <h3 className="text-xl font-semibold text-orange-900">
+                {isAdmin ? "User Orders" : "My Orders"}
+            </h3>
             {[
-                { id: "ORD123", date: "Oct 28, 2025", total: "₹2,499", status: "Delivered" },
-                { id: "ORD124", date: "Oct 15, 2025", total: "₹1,299", status: "Shipped" },
+                { id: "ORD123", date: "Oct 28, 2025", total: "₹2,499", status: "Delivered", color: "green" },
+                { id: "ORD124", date: "Oct 15, 2025", total: "₹1,299", status: "Shipped", color: "orange" },
+                { id: "ORD125", date: "Oct 10, 2025", total: "₹799", status: "Processing", color: "yellow" },
             ].map((o, i) => (
                 <motion.div
                     key={o.id}
@@ -92,7 +98,11 @@ const Profile = () => {
                     <div className="text-right">
                         <p className="font-semibold text-orange-900">{o.total}</p>
                         <p
-                            className={`text-sm font-medium ${o.status === "Delivered" ? "text-green-600" : "text-orange-600"
+                            className={`text-sm font-medium ${o.status === "Delivered"
+                                    ? "text-green-600"
+                                    : o.status === "Shipped"
+                                        ? "text-orange-600"
+                                        : "text-yellow-600"
                                 }`}
                         >
                             {o.status}
@@ -111,9 +121,10 @@ const Profile = () => {
         </motion.div>
     );
 
+    // ADMIN DASHBOARD (Only for admin)
     const AdminDashboard = () => (
         <motion.div variants={child} className="space-y-6">
-            <h3 className="text-xl font-semibold text-orange-900">Admin Quick Stats</h3>
+            <h3 className="text-xl font-semibold text-orange-900">Admin Panel</h3>
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
                 {[
                     { val: 24, label: "Total Orders", color: "orange" },
@@ -262,7 +273,7 @@ const Profile = () => {
                 {/* Desktop Sidebar */}
                 <Sidebar />
 
-                {/* Main Content – scrolls when needed */}
+                {/* Main Content */}
                 <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 p-4 lg:p-8">
                     <motion.div
                         variants={container}
@@ -271,6 +282,7 @@ const Profile = () => {
                         className="mx-auto max-w-4xl"
                     >
                         <AnimatePresence mode="wait">
+                            {/* PROFILE */}
                             {activeSection === "profile" && (
                                 <motion.section
                                     key="profile"
@@ -279,15 +291,11 @@ const Profile = () => {
                                     exit={{ opacity: 0, x: 50 }}
                                     className="p-6 bg-white rounded-xl shadow-xl border border-orange-100"
                                 >
-                                    <ProfileSettings
-                                        user={user}
-                                        loading={loading}
-                                        onSave={handleProfileSave}
-                                        onCancel={() => console.log("Edit cancelled")}
-                                    />
+                                    <ProfileSettings />
                                 </motion.section>
                             )}
 
+                            {/* ORDERS */}
                             {activeSection === "orders" && (
                                 <motion.section
                                     key="orders"
@@ -300,6 +308,7 @@ const Profile = () => {
                                 </motion.section>
                             )}
 
+                            {/* ADMIN PANEL */}
                             {activeSection === "admin" && isAdmin && (
                                 <motion.section
                                     key="admin"

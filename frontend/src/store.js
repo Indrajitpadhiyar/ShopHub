@@ -7,6 +7,7 @@ import {
 } from "./redux/reducer/product.Reducer";
 import cartReducer from "./redux/slices/cartSlice";
 import { userReducer } from "./redux/reducer/user.Reducer";
+import { orderReducer } from "./redux/reducer/orderReducer";
 import wishlistReducer from "./redux/slices/wishlistSlice";
 
 const reducer = combineReducers({
@@ -15,6 +16,7 @@ const reducer = combineReducers({
   user: userReducer,
   cart: cartReducer,
   wishlist: wishlistReducer,
+  order: orderReducer,
 });
 
 let initialState = {};

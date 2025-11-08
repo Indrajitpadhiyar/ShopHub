@@ -32,7 +32,7 @@ const AllProducts = () => {
         } else {
             dispatch(getProduct());
         }
-    }, [dispatch, error, ]);
+    }, [dispatch, error,]);
 
     // Filter products based on active filters
     const filteredProducts = Array.isArray(products) ? products.filter(product => {
@@ -214,7 +214,7 @@ const AllProducts = () => {
                                 {currentProducts.map((product) => (
                                     <ProductCard
                                         key={product._id || product.id}
-                                        id={product._id || product.id}
+                                        _id={product._id || product.id}
                                         name={product.name}
                                         price={product.price}
                                         description={product.description}
