@@ -11,6 +11,7 @@ import Profile from './components/pages/Profile';
 import Cart from './components/pages/Cart';
 import Wishlist from './components/pages/Wishlist';
 import HotDeals from './components/pages/HotDeals';
+import MyOrder from './components/pages/MyOrder';
 import './app.css';
 
 const App = () => {
@@ -33,6 +34,7 @@ const App = () => {
         <Route path="/cart" element={<Cart />} />
         <Route path="/wishlist" element={<Wishlist />} />
         <Route path="/deals" element={<HotDeals />} />
+        <Route path="/profile/orders" element={<MyOrder />} />
       </Routes>
     </Router>
   );

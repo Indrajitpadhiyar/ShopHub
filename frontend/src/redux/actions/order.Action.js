@@ -1,3 +1,4 @@
+// src/redux/actions/order.Action.js
 import axios from "axios";
 import {
   CREATE_ORDER_REQUEST,
@@ -8,14 +9,19 @@ import {
   GET_MY_ORDERS_FAIL,
 } from "../constans/orderConstants";
 
+// Axios instance with base URL + cookies
+const API = axios.create({
+  baseURL: "http://localhost:4000", // ← CHANGE IF PORT DIFFERENT
+  withCredentials: true, // ← COOKIES SEND HO RAHE HAIN
+});
+
 export const createOrder = (order) => async (dispatch) => {
   try {
     dispatch({ type: CREATE_ORDER_REQUEST });
 
-    const config = { headers: { "Content-Type": "application/json" } };
-    const { data } = await axios.post("/api/v1/order/new", order, config);
+    const { data } = await API.post("/api/v1/order/new", order);
 
-    dispatch({ type: CREATE_ORDER_SUCCESS, payload: data });
+    dispatch({ type: CREATE_ORDER_SUCCESS, payload: data.order });
   } catch (error) {
     dispatch({
       type: CREATE_ORDER_FAIL,
@@ -28,8 +34,7 @@ export const getMyOrders = () => async (dispatch) => {
   try {
     dispatch({ type: GET_MY_ORDERS_REQUEST });
 
-    const config = { headers: { "Content-Type": "application/json" } };
-    const { data } = await axios.get("/api/v1/me/orders", config);
+    const { data } = await API.get("/api/v1/orders/me"); // ← CORRECT URL
 
     dispatch({ type: GET_MY_ORDERS_SUCCESS, payload: data.orders });
   } catch (error) {
