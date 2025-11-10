@@ -22,7 +22,7 @@ import Navbar from "../ui/Navbar";
 import Footer from "../ui/Footer";
 import ReviewSection from "../layouts/ReviewSection";
 import MetaData from "../ui/MetaData";
-import CheckoutButton from "../layouts/CheckoutButton";
+import { CheckoutModal } from "../layouts/CheckoutButton"; // Fixed Import
 
 const ProductDetails = () => {
     const { id } = useParams();
@@ -35,7 +35,8 @@ const ProductDetails = () => {
     const [selectedImg, setSelectedImg] = useState(0);
     const [quantity, setQuantity] = useState(1);
     const [isAdding, setIsAdding] = useState(false);
-    const [showCheckoutPopup, setShowCheckoutPopup] = useState(false); // ← NEW
+    const [showCheckoutPopup, setShowCheckoutPopup] = useState(false);
+    const [buyNowItem, setBuyNowItem] = useState(null);
 
     const isWishlisted = wishlistItems?.some((item) => item._id === id);
 
@@ -50,7 +51,6 @@ const ProductDetails = () => {
         }
     }, [error, dispatch]);
 
-    // ADD TO CART
     const handleAddToCart = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -81,7 +81,6 @@ const ProductDetails = () => {
         setTimeout(() => setIsAdding(false), 800);
     };
 
-    // BUY NOW → Add to Cart + Open Popup
     const handleBuyNow = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -96,23 +95,18 @@ const ProductDetails = () => {
             return;
         }
 
-        // Add to cart with selected quantity
-        dispatch(
-            addToCart({
-                _id: product._id,
-                name: product.name,
-                price: product.price,
-                image: product.images?.[0]?.url || "https://via.placeholder.com/400",
-                stock: product.stock,
-                qty: quantity,
-            })
-        );
+        const item = {
+            _id: product._id,
+            name: product.name,
+            price: product.price,
+            image: product.images?.[0]?.url || "https://via.placeholder.com/400",
+            qty: quantity,
+        };
 
-        // Open the same popup
+        setBuyNowItem(item);
         setShowCheckoutPopup(true);
     };
 
-    // WISHLIST
     const handleWishlist = (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -171,7 +165,6 @@ const ProductDetails = () => {
                 <div className="max-w-7xl mx-auto px-4">
                     <div className="bg-white rounded-lg shadow-sm">
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 p-4 md:p-6">
-
                             {/* LEFT: Images */}
                             <div className="md:col-span-5 space-y-3">
                                 <div className="border border-gray-200 rounded-md overflow-hidden bg-white">
@@ -208,8 +201,8 @@ const ProductDetails = () => {
                                             <Star
                                                 key={i}
                                                 className={`w-4 h-4 ${i < Math.floor(product.ratings || 0)
-                                                        ? "fill-yellow-400 text-yellow-400"
-                                                        : "text-gray-300"
+                                                    ? "fill-yellow-400 text-yellow-400"
+                                                    : "text-gray-300"
                                                     }`}
                                             />
                                         ))}
@@ -299,7 +292,6 @@ const ProductDetails = () => {
                                         {product.stock > 0 ? "In stock" : "Out of stock"}
                                     </p>
 
-                                    {/* Quantity */}
                                     <div className="flex items-center border border-gray-300 rounded-md w-full">
                                         <button
                                             onClick={() => setQuantity(Math.max(1, quantity - 1))}
@@ -317,35 +309,32 @@ const ProductDetails = () => {
                                         </button>
                                     </div>
 
-                                    {/* Action Buttons */}
                                     <div className="space-y-2">
-                                        {/* Add to Cart */}
                                         <button
                                             onClick={handleAddToCart}
                                             disabled={product.stock <= 0 || isAdding}
                                             className={`w-full py-2 rounded-md font-medium transition-all ${product.stock <= 0 || isAdding
-                                                    ? "bg-gray-300 cursor-not-allowed text-gray-600"
-                                                    : "bg-yellow-400 hover:bg-yellow-500 text-black"
+                                                ? "bg-gray-300 cursor-not-allowed text-gray-600"
+                                                : "bg-yellow-400 hover:bg-yellow-500 text-black"
                                                 }`}
                                         >
                                             {isAdding ? "Adding..." : "Add to Cart"}
                                         </button>
 
-                                        {/* Buy Now → Opens SAME Popup */}
                                         <button
                                             onClick={handleBuyNow}
-                                            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-2 rounded-md font-medium transition"
+                                            disabled={product.stock <= 0}
+                                            className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-400 text-white py-2 rounded-md font-medium transition"
                                         >
                                             Buy Now
                                         </button>
                                     </div>
 
-                                    {/* Wishlist */}
                                     <button
                                         onClick={handleWishlist}
                                         className={`w-full flex items-center justify-center gap-2 border rounded-md py-2 text-sm font-medium transition-all ${isWishlisted
-                                                ? "border-orange-500 bg-orange-50 text-orange-600"
-                                                : "border-gray-300 hover:border-orange-500"
+                                            ? "border-orange-500 bg-orange-50 text-orange-600"
+                                            : "border-gray-300 hover:border-orange-500"
                                             }`}
                                     >
                                         <Heart
@@ -363,17 +352,23 @@ const ProductDetails = () => {
                         </div>
                     </div>
 
-                    {/* Reviews */}
                     <div className="mt-8 bg-white rounded-lg shadow-sm p-6">
                         <ReviewSection />
                     </div>
                 </div>
             </div>
 
-            {/* SAME CHECKOUT POPUP – Reused from Cart */}
-            <CheckoutButton
+            {/* BUY NOW CHECKOUT POPUP */}
+            <CheckoutModal
                 isOpen={showCheckoutPopup}
-                onClose={() => setShowCheckoutPopup(false)}
+                onClose={() => {
+                    setShowCheckoutPopup(false);
+                    setBuyNowItem(null);
+                }}
+                onSuccess={() => {
+                    setBuyNowItem(null);
+                }}
+                overrideCartItems={buyNowItem ? [buyNowItem] : undefined}
             />
 
             <Footer />

@@ -91,11 +91,15 @@ export const updateOrder = catchAsyncError(async (req, res, next) => {
   });
 });
 
+//update order status -- admin
+
 async function updateStock(id, quantity) {
   const product = await Product.findById(id);
   product.stock -= quantity;
   await product.save({ validateBeforeSave: false });
 }
+
+//delete order from the Admin
 
 export const deleteOrder = catchAsyncError(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
@@ -105,5 +109,42 @@ export const deleteOrder = catchAsyncError(async (req, res, next) => {
   await order.deleteOne();
   res.status(200).json({
     success: true,
+  });
+});
+
+// Cancel Order -- User
+export const cancelOrder = catchAsyncError(async (req, res, next) => {
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return next(new ErrorHandler("Order not found", 404));
+  }
+
+  // Only owner can cancel
+  if (order.user.toString() !== req.user._id.toString()) {
+    return next(new ErrorHandler("You can only cancel your own orders", 403));
+  }
+
+  if (order.orderStatus === "Delivered") {
+    return next(new ErrorHandler("Delivered orders cannot be cancelled", 400));
+  }
+
+  if (order.orderStatus === "Cancelled") {
+    return next(new ErrorHandler("Order is already cancelled", 400));
+  }
+
+  order.orderStatus = "Cancelled";
+  order.cancelledAt = Date.now();
+
+  // Optional: Return stock
+  order.orderItems.forEach(async (o) => {
+    await updateStockReverse(o.product, o.quantity);
+  });
+
+  await order.save();
+
+  res.status(200).json({
+    success: true,
+    message: "Order cancelled successfully",
   });
 });

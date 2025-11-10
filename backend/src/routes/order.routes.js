@@ -6,6 +6,7 @@ import {
   getAllOrders,
   updateOrder,
   deleteOrder,
+  cancelOrder,
 } from "../controllers/order.controller.js";
 import {
   isAuthenticated,
@@ -35,5 +36,8 @@ orderRouter
   .route("/admin/order/:id")
   .put(isAuthenticated, authorizeRoles("admin"), updateOrder)
   .delete(isAuthenticated, authorizeRoles("admin"), deleteOrder);
+
+// Cancel Order -- User
+orderRouter.route("/order/cancel/:id").delete(isAuthenticated, cancelOrder);
 
 export default orderRouter;

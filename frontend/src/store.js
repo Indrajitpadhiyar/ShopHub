@@ -10,7 +10,7 @@ import { userReducer } from "./redux/reducer/user.Reducer";
 import {
   myOrdersReducer,
   createOrderReducer,
-} from "./redux/reducer/orderReducer";
+} from "./redux/reducer/order.Reducer";
 import wishlistReducer from "./redux/slices/wishlistSlice";
 
 const reducer = combineReducers({
