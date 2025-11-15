@@ -3,6 +3,7 @@ import Product from "../models/product.model.js";
 import ErrorHandler from "../utils/error.handler.js";
 import catchAsyncError from "../middlewares/catchAysncerror.middleware.js";
 
+// Create new order
 export const newOrder = catchAsyncError(async (req, res, next) => {
   const {
     shippingInfo,
@@ -25,36 +26,41 @@ export const newOrder = catchAsyncError(async (req, res, next) => {
     paidAt: Date.now(),
     user: req.user._id,
   });
+
   res.status(201).json({
     success: true,
     order,
   });
 });
 
+// Get single order details
 export const getSingleOrder = catchAsyncError(async (req, res, next) => {
   const order = await Order.findById(req.params.id).populate(
     "user",
     "name email"
   );
+
   if (!order) {
     return next(new ErrorHandler("Order not found with this Id", 404));
   }
+
   res.status(200).json({
     success: true,
     order,
   });
 });
 
-//get logged in user orders
+// Get logged-in user's orders
 export const myOrders = catchAsyncError(async (req, res, next) => {
   const orders = await Order.find({ user: req.user._id });
+
   res.status(200).json({
     success: true,
     orders,
   });
 });
 
-// all order for -- admin
+// Get all orders -- Admin
 export const getAllOrders = catchAsyncError(async (req, res, next) => {
   const orders = await Order.find();
 
@@ -62,57 +68,82 @@ export const getAllOrders = catchAsyncError(async (req, res, next) => {
   orders.forEach((order) => {
     totalAmount += order.totalPrice;
   });
+
   res.status(200).json({
     success: true,
     totalAmount,
+    totalOrders: orders.length,
     orders,
   });
 });
 
-//update order status -- admin
+// Update order status -- Admin
 export const updateOrder = catchAsyncError(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return next(new ErrorHandler("Order not found", 404));
+  }
+
   if (order.orderStatus === "Delivered") {
     return next(new ErrorHandler("You have already delivered this order", 400));
   }
 
-  order.orderItems.forEach(async(order) => {
-    await updateStock(order.product, order.quantity);
-  });
-
-  order.orderStatus = req.body.status;
+  // Reduce stock when status becomes "Delivered"
   if (req.body.status === "Delivered") {
+    for (const item of order.orderItems) {
+      await updateStock(item.product, item.quantity);
+    }
     order.deliveredAt = Date.now();
   }
+
+  order.orderStatus = req.body.status;
   await order.save({ validateBeforeSave: false });
 
   res.status(200).json({
     success: true,
+    message: "Order status updated successfully",
   });
 });
 
-//update order status -- admin
-
-async function updateStock(id, quantity) {
-  const product = await Product.findById(id);
+// Helper: Decrease stock when order is Delivered
+async function updateStock(productId, quantity) {
+  const product = await Product.findById(productId);
+  if (!product) {
+    throw new Error(`Product not found: ${productId}`);
+  }
   product.stock -= quantity;
   await product.save({ validateBeforeSave: false });
 }
 
-//delete order from the Admin
+// Helper: Increase stock when order is Cancelled
+async function updateStockReverse(productId, quantity) {
+  const product = await Product.findById(productId);
+  if (!product) {
+    console.warn(`Product not found during cancellation: ${productId}`);
+    return; // Don't crash if product was deleted
+  }
+  product.stock += quantity;
+  await product.save({ validateBeforeSave: false });
+}
 
+// Delete order -- Admin
 export const deleteOrder = catchAsyncError(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
+
   if (!order) {
     return next(new ErrorHandler("Order not found with this Id", 404));
   }
+
   await order.deleteOne();
+
   res.status(200).json({
     success: true,
+    message: "Order deleted successfully",
   });
 });
 
-// Cancel Order -- User
+// Cancel Order -- User (Only before delivery)
 export const cancelOrder = catchAsyncError(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
 
@@ -120,11 +151,12 @@ export const cancelOrder = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Order not found", 404));
   }
 
-  // Only owner can cancel
+  // Check if the logged-in user is the owner
   if (order.user.toString() !== req.user._id.toString()) {
     return next(new ErrorHandler("You can only cancel your own orders", 403));
   }
 
+  // Prevent cancellation if already delivered or cancelled
   if (order.orderStatus === "Delivered") {
     return next(new ErrorHandler("Delivered orders cannot be cancelled", 400));
   }
@@ -133,18 +165,19 @@ export const cancelOrder = catchAsyncError(async (req, res, next) => {
     return next(new ErrorHandler("Order is already cancelled", 400));
   }
 
+  // Update status
   order.orderStatus = "Cancelled";
   order.cancelledAt = Date.now();
 
-  // Optional: Return stock
-  order.orderItems.forEach(async (o) => {
-    await updateStockReverse(o.product, o.quantity);
-  });
+  // Return items to stock
+  for (const item of order.orderItems) {
+    await updateStockReverse(item.product, item.quantity);
+  }
 
-  await order.save();
+  await order.save({ validateBeforeSave: false });
 
   res.status(200).json({
     success: true,
-    message: "Order cancelled successfully",
+    message: "Order cancelled successfully and items returned to stock",
   });
 });

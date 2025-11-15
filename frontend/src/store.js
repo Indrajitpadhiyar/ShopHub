@@ -12,6 +12,7 @@ import {
   createOrderReducer,
 } from "./redux/reducer/order.Reducer";
 import wishlistReducer from "./redux/slices/wishlistSlice";
+import { newReviewReducer } from "./redux/reducer/review.Reducer";
 
 const reducer = combineReducers({
   products: productReducer,
@@ -21,6 +22,7 @@ const reducer = combineReducers({
   wishlist: wishlistReducer,
   myOrders: myOrdersReducer,
   createOrder: createOrderReducer,
+  newReview: newReviewReducer,
 });
 
 let initialState = {};

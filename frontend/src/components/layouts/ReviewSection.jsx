@@ -2,13 +2,16 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams } from 'react-router-dom';
-import { getProductDetails } from '../../redux/actions/product.Action';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { createReview } from '../../redux/actions/review.Action';
+import { getProductDetails } from '../../redux/actions/product.Action';
+import { deleteReview } from '../../redux/actions/review.Action'; // action
 
 const ReviewSection = () => {
     const dispatch = useDispatch();
     const { id } = useParams();
-
+    const currentUser = useSelector((state) => state.user?.user);
     const [currentImageIdx, setCurrentImageIdx] = useState(0);
     const [userReview, setUserReview] = useState({
         rating: 0,
@@ -21,9 +24,26 @@ const ReviewSection = () => {
         (state) => state.productDetails
     );
 
+    const { success, error: reviewError } = useSelector(
+        (state) => state.newReview
+    );
+
     useEffect(() => {
         if (id) dispatch(getProductDetails(id));
     }, [dispatch, id]);
+
+    useEffect(() => {
+        if (success) {
+            toast.success("Review submitted successfully!");
+            dispatch(getProductDetails(id)); // Yeh naya review laayega
+            setUserReview({ rating: 0, title: '', comment: '' });
+            dispatch({ type: "NEW_REVIEW_RESET" });
+        }
+        if (reviewError) {
+            toast.error(reviewError);
+            dispatch({ type: "CLEAR_ERRORS" });
+        }
+    }, [success, reviewError, dispatch, id]);
 
     const { totalReviews, averageRating, distribution } = useMemo(() => {
         const reviews = product?.reviews || [];
@@ -70,12 +90,31 @@ const ReviewSection = () => {
         );
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        console.log('Submit review →', userReview);
-        setUserReview({ rating: 0, title: '', comment: '' });
-    };
 
+        if (userReview.rating === 0) {
+            toast.error("Please select a rating");
+            return;
+        }
+        if (!userReview.title.trim()) {
+            toast.error("Please enter a review title");
+            return;
+        }
+        if (!userReview.comment.trim()) {
+            toast.error("Please write your review");
+            return;
+        }
+
+        const reviewData = {
+            rating: userReview.rating,
+            comment: userReview.comment,
+            productId: id,
+        };
+
+        await dispatch(createReview(reviewData));
+        // Success ka kaam useEffect mein ho jayega
+    };
     const renderStars = (rating) => {
         const numRating = Number(rating);
         return [...Array(5)].map((_, i) => (
@@ -94,8 +133,8 @@ const ReviewSection = () => {
                 key={i}
                 size={32}
                 className={`cursor-pointer transition-colors ${i < numSelected
-                        ? 'fill-orange-500 text-orange-500'
-                        : 'text-gray-300 hover:text-orange-400'
+                    ? 'fill-orange-500 text-orange-500'
+                    : 'text-gray-300 hover:text-orange-400'
                     }`}
                 onClick={() => setSelected(i + 1)}
             />
@@ -109,6 +148,9 @@ const ReviewSection = () => {
     const visibleReviews = showAllReviews
         ? product?.reviews || []
         : (product?.reviews || []).slice(0, 4);
+
+
+
 
     return (
         <div className="max-w-7xl mx-auto px-4 py-8">
@@ -316,67 +358,125 @@ const ReviewSection = () => {
                 </form>
             </section>
 
-            {/* ---------- 4. Top reviews (Only 4 by default) ---------- */}
+            {/* ---------- 4. Top reviews (100% Fixed, No Hook Error) ---------- */}
             <section>
                 <h3 className="text-2xl font-bold mb-6">Top reviews from India</h3>
 
+                {/* YE LINE JSX SE BAHAR HONA CHAHIYE — YEH SABSE ZAROORI HAI */}
+
+
                 {product?.reviews?.length ? (
-                    <div className="space-y-6">
+                    <div className="space-y-8">
                         {visibleReviews.map((rev, idx) => {
                             const name = rev.name || rev.user?.name || 'Anonymous';
                             const date = rev.createdAt || rev.date || Date.now();
+                            const avatarUrl = rev.user?.avatar?.url || rev.user?.avatar || null;
+
+                            // Safe — currentUser bahar hai
+                            const isOwnReview = currentUser && rev.user && (rev.user._id === currentUser._id);
+
+                            const handleDelete = async () => {
+                                if (!window.confirm("Delete your review permanently?")) return;
+
+                                try {
+                                    await dispatch(deleteReview(rev._id, id));
+                                    toast.success("Review deleted successfully!");
+                                    dispatch(getProductDetails(id));
+                                } catch (err) {
+                                    toast.error("Failed to delete review");
+                                }
+                            };
 
                             return (
-                                <div
-                                    key={idx}
-                                    className="border-b border-gray-200 pb-6 last:border-0"
-                                >
-                                    <div className="flex gap-4">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
-                                            {name.charAt(0).toUpperCase()}
+                                <div key={rev._id || idx} className="border-b border-gray-200 pb-8 last:border-0">
+                                    <div className="flex gap-5">
+
+                                        {/* Avatar */}
+                                        <div className="flex-shrink-0">
+                                            {avatarUrl ? (
+                                                <img
+                                                    src={avatarUrl}
+                                                    alt={name}
+                                                    className="w-14 h-14 rounded-full object-cover border-2 border-orange-100 shadow-md ring-2 ring-orange-200"
+                                                    onError={(e) => {
+                                                        e.target.style.display = 'none';
+                                                        e.target.nextElementSibling.style.display = 'flex';
+                                                    }}
+                                                />
+                                            ) : null}
+
+                                            <div className={`
+                                    w-14 h-14 rounded-full flex items-center justify-center 
+                                    text-white font-bold text-xl shadow-lg
+                                    bg-gradient-to-br from-orange-400 to-orange-600
+                                    ring-2 ring-orange-200
+                                    ${avatarUrl ? 'hidden' : 'flex'}
+                                `}>
+                                                {name.charAt(0).toUpperCase()}
+                                            </div>
                                         </div>
 
                                         <div className="flex-1">
-                                            <p className="font-semibold text-lg">{name}</p>
+                                            <div className="flex justify-between items-start mb-2">
+                                                <div>
+                                                    <p className="font-semibold text-lg text-gray-900">{name}</p>
+                                                    {isOwnReview && (
+                                                        <span className="inline-block mt-1 text-xs font-medium text-green-700 bg-green-50 px-2 py-1 rounded-full">
+                                                            Verified Purchase
+                                                        </span>
+                                                    )}
+                                                </div>
 
-                                            <div className="flex items-center gap-2 mt-1 mb-2">
+                                                {/* Delete Button - Only for own review */}
+                                                {isOwnReview && (
+                                                    <button
+                                                        onClick={handleDelete}
+                                                        className="text-red-600 hover:text-red-800 text-sm font-medium transition"
+                                                    >
+                                                        Delete
+                                                    </button>
+                                                )}
+                                            </div>
+
+                                            <div className="flex items-center gap-3 mb-3">
                                                 <div className="flex">{renderStars(rev.rating)}</div>
-                                                <span className="text-sm font-semibold">
+                                                <span className="text-sm font-semibold text-orange-600">
                                                     {rev.title || 'Great Product'}
                                                 </span>
                                             </div>
 
-                                            <p className="text-xs text-gray-500 mb-3">
-                                                Reviewed on{' '}
-                                                {new Date(date).toLocaleDateString('en-IN', {
-                                                    year: 'numeric',
-                                                    month: 'long',
+                                            <p className="text-xs text-gray-500 mb-4">
+                                                Reviewed on {new Date(date).toLocaleDateString('en-IN', {
                                                     day: 'numeric',
+                                                    month: 'long',
+                                                    year: 'numeric'
                                                 })}
                                             </p>
 
-                                            <p className="text-gray-700 leading-relaxed">
+                                            <p className="text-gray-700 leading-relaxed text-base mb-5">
                                                 {rev.comment || rev.review}
                                             </p>
 
+                                            {/* Review Images */}
                                             {rev.images?.length > 0 && (
-                                                <div className="flex gap-2 mt-4">
+                                                <div className="flex gap-3 flex-wrap mb-6">
                                                     {rev.images.map((img, i) => (
                                                         <img
                                                             key={i}
                                                             src={img}
                                                             alt={`Review image ${i + 1}`}
-                                                            className="w-20 h-20 object-cover rounded-md"
+                                                            className="w-24 h-24 object-cover rounded-lg shadow border hover:shadow-xl transition-shadow cursor-pointer"
                                                         />
                                                     ))}
                                                 </div>
                                             )}
 
-                                            <div className="flex gap-4 mt-4 text-sm">
-                                                <button className="text-gray-600 hover:text-orange-600">
+                                            {/* Helpful & Report */}
+                                            <div className="flex gap-6 text-sm">
+                                                <button className="text-gray-600 hover:text-orange-600 font-medium transition">
                                                     Helpful ({rev.helpful || 0})
                                                 </button>
-                                                <button className="text-gray-600 hover:text-orange-600">
+                                                <button className="text-gray-600 hover:text-red-600 font-medium transition">
                                                     Report
                                                 </button>
                                             </div>
@@ -387,20 +487,18 @@ const ReviewSection = () => {
                         })}
                     </div>
                 ) : (
-                    <p className="text-center text-gray-500 py-8">
+                    <p className="text-center text-gray-500 py-12 text-lg">
                         No reviews yet. Be the first to review this product!
                     </p>
                 )}
 
-                {/* NEW: See More / Show Less Button */}
+                {/* See All Button */}
                 {totalReviews > 4 && (
                     <button
                         onClick={() => setShowAllReviews(!showAllReviews)}
-                        className="mt-8 w-full border-2 border-orange-500 text-orange-600 font-semibold py-3 rounded-lg hover:bg-orange-50 transition-all"
+                        className="mt-10 w-full border-2 border-orange-500 text-orange-600 font-semibold py-4 rounded-xl hover:bg-orange-50 transition-all text-lg"
                     >
-                        {showAllReviews
-                            ? `Show Less`
-                            : `See More Reviews (${totalReviews - 4} more)`}
+                        {showAllReviews ? `Show Less` : `See All ${totalReviews} Reviews`}
                     </button>
                 )}
             </section>
