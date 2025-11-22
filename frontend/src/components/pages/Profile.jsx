@@ -1,4 +1,3 @@
-// src/pages/Profile.jsx
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
@@ -7,26 +6,31 @@ import {
     Home,
     User,
     ShoppingBag,
+    PackagePlus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { logout, clearErrors } from "../../redux/actions/user.Action";
+import { addProduct } from "../../redux/actions/addProduct.Action";
+import { ADD_PRODUCT_RESET } from "../../redux/constans/addProduct.Constans";
 import ProfileSettings from "../layouts/ProfileSettings";
 import toast from "react-hot-toast";
 
 const Profile = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { user, isAuthenticated, loading, error } = useSelector((state) => state.user);
+    const { user, isAuthenticated, error } = useSelector((state) => state.user);
 
     const [activeSection, setActiveSection] = useState("profile");
 
-    // Redirect if not logged-in
+    // Redirect if not logged in
     useEffect(() => {
-        if (!isAuthenticated) navigate("/login");
+        if (!isAuthenticated && isAuthenticated !== null) {
+            navigate("/login");
+        }
     }, [isAuthenticated, navigate]);
 
-    // Show errors
+    // Show error toast
     useEffect(() => {
         if (error) {
             toast.error(error);
@@ -38,160 +42,436 @@ const Profile = () => {
 
     const handleLogout = () => {
         dispatch(logout());
+        toast.success("Logged out successfully!");
         navigate("/");
     };
 
-    // NAVIGATION ITEMS – Dynamic Label
+    // Add Product Section Component
+    const AddProductSection = () => {
+        const [name, setName] = useState("");
+        const [price, setPrice] = useState("");
+        const [description, setDescription] = useState("");
+        const [category, setCategory] = useState("");
+        const [stock, setStock] = useState("");
+        const [images, setImages] = useState([]);
+        const [imagesPreview, setImagesPreview] = useState([]);
+
+        const { loading, success, error: addProductError } = useSelector((state) => state.addProduct);
+
+        // Reset form on success
+        useEffect(() => {
+            if (success) {
+                toast.success("Product added successfully!");
+                setTimeout(() => {
+                    dispatch({ type: ADD_PRODUCT_RESET });
+                    // Reset form
+                    setName("");
+                    setPrice("");
+                    setDescription("");
+                    setCategory("");
+                    setStock("");
+                    setImages([]);
+                    setImagesPreview([]);
+                }, 2000);
+            }
+        }, [success, dispatch]);
+
+        // Show add product error
+        useEffect(() => {
+            if (addProductError) {
+                toast.error(addProductError);
+            }
+        }, [addProductError]);
+
+        const handleImageChange = (e) => {
+            const files = Array.from(e.target.files);
+
+            setImages([]);
+            setImagesPreview([]);
+
+            files.forEach((file) => {
+                const reader = new FileReader();
+
+                reader.onload = () => {
+                    if (reader.readyState === 2) {
+                        setImagesPreview((old) => [...old, reader.result]);
+                        setImages((old) => [...old, file]);
+                    }
+                };
+
+                reader.readAsDataURL(file);
+            });
+        };
+
+        const submitHandler = (e) => {
+            e.preventDefault();
+
+            // Enhanced validation
+            if (!name.trim()) {
+                toast.error("Product name is required");
+                return;
+            }
+            if (!price || price <= 0) {
+                toast.error("Please enter a valid price");
+                return;
+            }
+            if (!description.trim()) {
+                toast.error("Product description is required");
+                return;
+            }
+            if (!category) {
+                toast.error("Please select a category");
+                return;
+            }
+            if (!stock || stock < 0) {
+                toast.error("Please enter a valid stock quantity");
+                return;
+            }
+            if (images.length === 0) {
+                toast.error("Please upload at least one product image");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("name", name.trim());
+            formData.append("price", price);
+            formData.append("description", description.trim());
+            formData.append("category", category);
+            formData.append("stock", stock);
+
+            images.forEach((image) => {
+                formData.append("images", image);
+            });
+
+            dispatch(addProduct(formData));
+        };
+
+        return (
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="space-y-6"
+            >
+                <div className="flex justify-between items-center">
+                    <h3 className="text-2xl font-bold text-orange-900">Add New Product</h3>
+                    {success && (
+                        <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                            ✓ Product Added!
+                        </span>
+                    )}
+                </div>
+
+                {/* Success Message */}
+                {success && (
+                    <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-center">
+                            <svg className="w-5 h-5 text-green-500 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                            </svg>
+                            <span className="text-green-700 font-medium">Product added successfully! Form will reset shortly.</span>
+                        </div>
+                    </div>
+                )}
+
+                <form onSubmit={submitHandler} className="space-y-6">
+                    {/* Name & Price */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-2">Product Name *</label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-500 outline-none transition"
+                                placeholder="Enter product name"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-2">Price (₹) *</label>
+                            <input
+                                type="number"
+                                value={price}
+                                onChange={(e) => setPrice(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-500 outline-none transition"
+                                placeholder="999"
+                                min="0"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    {/* Category & Stock */}
+                    <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-2">Category *</label>
+                            <select
+                                value={category}
+                                onChange={(e) => setCategory(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-500 outline-none transition"
+                                required
+                            >
+                                <option value="">Choose Category</option>
+                                <option value="Electronics">Electronics</option>
+                                <option value="Fashion">Fashion</option>
+                                <option value="Home & Kitchen">Home & Kitchen</option>
+                                <option value="Beauty">Beauty</option>
+                                <option value="Sports">Sports</option>
+                                <option value="Books">Books</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label className="block text-gray-700 font-medium mb-2">Stock Quantity *</label>
+                            <input
+                                type="number"
+                                value={stock}
+                                onChange={(e) => setStock(e.target.value)}
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-500 outline-none transition"
+                                placeholder="50"
+                                min="0"
+                                required
+                            />
+                        </div>
+                    </div>
+
+                    {/* Description */}
+                    <div>
+                        <label className="block text-gray-700 font-medium mb-2">Description *</label>
+                        <textarea
+                            rows="4"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-200 focus:border-orange-500 outline-none transition resize-none"
+                            placeholder="Write a detailed description..."
+                            required
+                        ></textarea>
+                    </div>
+
+                    {/* Image Upload */}
+                    <div>
+                        <label className="block text-gray-700 font-medium mb-3">Product Images *</label>
+                        <div className="border-2 border-dashed border-orange-300 rounded-xl p-6 text-center cursor-pointer hover:border-orange-500 transition">
+                            <input
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={handleImageChange}
+                                className="hidden"
+                                id="image-upload"
+                            />
+                            <label htmlFor="image-upload" className="cursor-pointer">
+                                <svg className="mx-auto h-12 w-12 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                                </svg>
+                                <p className="mt-2 text-gray-600 text-sm">Click to upload images (multiple allowed)</p>
+                                <p className="text-xs text-gray-500 mt-1">PNG, JPG, JPEG up to 5MB</p>
+                            </label>
+                        </div>
+
+                        {/* Image Preview */}
+                        {imagesPreview.length > 0 && (
+                            <div className="mt-4">
+                                <p className="text-sm text-gray-600 mb-2">{imagesPreview.length} image(s) selected</p>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                                    {imagesPreview.map((img, i) => (
+                                        <div key={i} className="relative group">
+                                            <img
+                                                src={img}
+                                                alt="Preview"
+                                                className="h-24 w-full object-cover rounded-lg shadow border border-orange-200"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setImagesPreview(imagesPreview.filter((_, index) => index !== i));
+                                                    setImages(images.filter((_, index) => index !== i));
+                                                }}
+                                                className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Submit Button */}
+                    <div className="text-center pt-4">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="bg-orange-600 hover:bg-orange-700 disabled:bg-orange-400 text-white font-bold py-3 px-8 rounded-full transition transform hover:scale-105 shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
+                        >
+                            {loading ? (
+                                <span className="flex items-center justify-center">
+                                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    Adding Product...
+                                </span>
+                            ) : (
+                                "Add Product"
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </motion.div>
+        );
+    };
+
+    // NAVIGATION ITEMS — "Add Product" only for Admin
     const navItems = [
         { id: "home", label: "Home", icon: <Home size={20} />, href: "/" },
         { id: "profile", label: "Profile", icon: <User size={20} /> },
         {
             id: "orders",
-            label: isAdmin ? "User Orders" : "My Orders", // ← Dynamic
+            label: isAdmin ? "All Orders" : "My Orders",
             icon: <ShoppingBag size={20} />,
         },
-        ...(isAdmin ? [{ id: "admin", label: "Admin Panel", icon: <Shield size={20} /> }] : []),
+        // ADD PRODUCT — ONLY FOR ADMIN
+        ...(isAdmin
+            ? [
+                {
+                    id: "add-product",
+                    label: "Add Product",
+                    icon: <PackagePlus size={20} />,
+                },
+            ]
+            : []),
+        // Admin Panel
+        ...(isAdmin
+            ? [{ id: "admin", label: "Admin Panel", icon: <Shield size={20} /> }]
+            : []),
     ];
 
+    // Animation Variants
     const container = {
         hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.08, delayChildren: 0.15 },
-        },
+        visible: { opacity: 1, transition: { staggerChildren: 0.08, delayChildren: 0.1 } },
     };
     const child = {
         hidden: { y: 20, opacity: 0 },
         visible: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 120 } },
     };
-    const avatarHover = {
-        scale: 1.12,
-        rotate: 6,
-        transition: { type: "spring", stiffness: 400 },
-    };
 
-    /* ---------- SECTIONS ---------- */
-
-    // ORDERS SECTION (Dynamic Title)
+    // Dummy Orders (Replace with real data later)
     const OrdersSection = () => (
-        <motion.div variants={child} className="space-y-4">
-            <h3 className="text-xl font-semibold text-orange-900">
-                {isAdmin ? "User Orders" : "My Orders"}
+        <motion.div variants={child} className="space-y-5">
+            <h3 className="text-2xl font-bold text-orange-900">
+                {isAdmin ? "All Orders" : "My Orders"}
             </h3>
             {[
                 { id: "ORD123", date: "Oct 28, 2025", total: "₹2,499", status: "Delivered", color: "green" },
                 { id: "ORD124", date: "Oct 15, 2025", total: "₹1,299", status: "Shipped", color: "orange" },
                 { id: "ORD125", date: "Oct 10, 2025", total: "₹799", status: "Processing", color: "yellow" },
-            ].map((o, i) => (
+            ].map((order, i) => (
                 <motion.div
-                    key={o.id}
-                    initial={{ x: -40, opacity: 0 }}
+                    key={order.id}
+                    initial={{ x: -50, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: i * 0.1 }}
-                    whileHover={{ scale: 1.02, backgroundColor: "rgba(251,146,60,.1)" }}
-                    className="flex items-center justify-between rounded-lg border border-orange-200 p-4 transition"
+                    whileHover={{ scale: 1.02 }}
+                    className="bg-white rounded-xl border border-orange-200 p-5 flex justify-between items-center shadow-sm"
                 >
                     <div>
-                        <p className="font-medium text-orange-900">#{o.id}</p>
-                        <p className="text-sm text-orange-600">{o.date}</p>
+                        <p className="font-bold text-orange-900">#{order.id}</p>
+                        <p className="text-sm text-orange-600">{order.date}</p>
                     </div>
                     <div className="text-right">
-                        <p className="font-semibold text-orange-900">{o.total}</p>
-                        <p
-                            className={`text-sm font-medium ${o.status === "Delivered"
-                                    ? "text-green-600"
-                                    : o.status === "Shipped"
-                                        ? "text-orange-600"
-                                        : "text-yellow-600"
+                        <p className="font-bold text-orange-900">{order.total}</p>
+                        <span
+                            className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${order.status === "Delivered"
+                                    ? "bg-green-100 text-green-700"
+                                    : order.status === "Shipped"
+                                        ? "bg-orange-100 text-orange-700"
+                                        : "bg-yellow-100 text-yellow-700"
                                 }`}
                         >
-                            {o.status}
-                        </p>
+                            {order.status}
+                        </span>
                     </div>
                 </motion.div>
             ))}
-            <motion.button
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => navigate("/profile/orders")}
-                className="w-full rounded-lg border border-orange-500 py-2 text-orange-600 hover:bg-orange-50 font-medium"
+            <button
+                onClick={() => navigate("/orders")}
+                className="w-full bg-orange-50 hover:bg-orange-100 text-orange-700 font-medium py-3 rounded-lg border border-orange-300 transition"
             >
-                View All Orders
-            </motion.button>
+                View All Orders →
+            </button>
         </motion.div>
     );
 
-    // ADMIN DASHBOARD (Only for admin)
+    // Admin Dashboard Preview
     const AdminDashboard = () => (
         <motion.div variants={child} className="space-y-6">
-            <h3 className="text-xl font-semibold text-orange-900">Admin Panel</h3>
-            <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <h3 className="text-2xl font-bold text-orange-900">Admin Dashboard</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                    { val: 24, label: "Total Orders", color: "orange" },
-                    { val: 18, label: "Completed", color: "green" },
-                    { val: 4, label: "Pending", color: "yellow" },
-                    { val: 2, label: "Cancelled", color: "red" },
-                ].map((s, i) => (
+                    { label: "Total Orders", value: 156, color: "orange" },
+                    { label: "Completed", value: 132, color: "green" },
+                    { label: "Pending", value: 18, color: "yellow" },
+                    { label: "Revenue", value: "₹4.8L", color: "blue" },
+                ].map((stat, i) => (
                     <motion.div
-                        key={s.label}
-                        initial={{ scale: 0 }}
+                        key={stat.label}
+                        initial={{ scale: 0.8 }}
                         animate={{ scale: 1 }}
-                        transition={{ delay: i * 0.08, type: "spring", stiffness: 200 }}
-                        className={`rounded-lg bg-${s.color}-50 p-4 text-center border border-${s.color}-200`}
+                        transition={{ delay: i * 0.1 }}
+                        className="bg-white rounded-xl border border-orange-200 p-5 text-center shadow-md"
                     >
-                        <p className={`text-2xl font-bold text-${s.color}-600`}>{s.val}</p>
-                        <p className={`text-sm text-${s.color}-700`}>{s.label}</p>
+                        <p className="text-3xl font-bold text-orange-600">{stat.value}</p>
+                        <p className="text-sm text-gray-600 mt-1">{stat.label}</p>
                     </motion.div>
                 ))}
             </div>
-            <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+            <button
                 onClick={() => navigate("/admin/dashboard")}
-                className="w-full rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 py-2 text-white shadow-md"
+                className="w-full bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition"
             >
-                Open Full Dashboard
-            </motion.button>
+                Open Full Admin Panel
+            </button>
         </motion.div>
     );
 
-    /* ---------- Sidebar (Desktop) ---------- */
+    // Desktop Sidebar
     const Sidebar = () => (
         <motion.aside
-            variants={container}
             initial="hidden"
             animate="visible"
-            className="hidden lg:flex flex-col w-80 bg-white shadow-xl border-r border-orange-100"
+            variants={container}
+            className="hidden lg:flex flex-col w-80 bg-white shadow-2xl border-r border-orange-100"
         >
-            <motion.div
-                variants={child}
-                className="flex flex-col items-center p-6 border-b border-orange-100"
-            >
-                <motion.div variants={avatarHover} whileHover="hover">
-                    {user?.avatar?.url ? (
-                        <img
-                            src={user.avatar.url}
-                            alt={user.name}
-                            className="h-20 w-20 rounded-full object-cover shadow-md ring-4 ring-orange-100"
-                        />
-                    ) : (
-                        <UserAvatar user={user} size="h-20 w-20" textSize="text-4xl" />
-                    )}
-                </motion.div>
-                <h2 className="mt-3 text-lg font-semibold text-orange-900">{user?.name}</h2>
-                <p className="text-sm text-orange-600">{user?.email}</p>
+            <div className="p-8 text-center border-b border-orange-100">
+                {user?.avatar?.url ? (
+                    <img
+                        src={user.avatar.url}
+                        alt={user.name}
+                        className="w-24 h-24 rounded-full mx-auto object-cover ring-4 ring-orange-200 shadow-lg"
+                    />
+                ) : (
+                    <UserAvatar user={user} />
+                )}
+                <h2 className="mt-4 text-xl font-bold text-orange-900">{user?.name || "User"}</h2>
+                <p className="text-orange-600">{user?.email}</p>
                 {isAdmin && (
-                    <span className="mt-2 flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-700">
-                        <Shield size={14} /> Admin
+                    <span className="inline-flex items-center gap-1 mt-3 px-4 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-medium">
+                        <Shield size={14} /> Admin Access
                     </span>
                 )}
-            </motion.div>
+            </div>
 
-            <nav className="flex-1 space-y-1 p-4">
+            <nav className="flex-1 p-4 space-y-2">
                 {navItems.map((item, i) => (
                     <motion.div
                         key={item.id}
-                        initial={{ x: -30, opacity: 0 }}
+                        initial={{ x: -40, opacity: 0 }}
                         animate={{ x: 0, opacity: 1 }}
                         transition={{ delay: i * 0.05 }}
                     >
@@ -201,44 +481,36 @@ const Profile = () => {
                             active={activeSection === item.id}
                             onClick={() => {
                                 if (item.href) navigate(item.href);
-                                else if (item.id !== "home") setActiveSection(item.id);
+                                else setActiveSection(item.id);
                             }}
                         />
                     </motion.div>
                 ))}
+
                 <motion.button
-                    whileHover={{ scale: 1.05, x: 6 }}
+                    whileHover={{ scale: 1.05 }}
                     whileTap={{ scale: 0.95 }}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-red-600 hover:bg-red-50"
+                    className="w-full flex items-center gap-3 mt-6 px-5 py-3 bg-red-50 text-red-600 rounded-xl font-medium hover:bg-red-100 transition"
                 >
-                    <motion.div
-                        animate={{ rotate: [0, 12, -12, 0] }}
-                        transition={{ repeat: Infinity, duration: 2 }}
-                    >
-                        <LogOut size={20} />
-                    </motion.div>
-                    <span className="font-medium">Logout</span>
+                    <LogOut size={20} />
+                    <span>Logout</span>
                 </motion.button>
             </nav>
         </motion.aside>
     );
 
-    /* ---------- Mobile Bottom Tabs ---------- */
+    // Mobile Bottom Navigation
     const MobileTabs = () => (
-        <div className="lg:hidden fixed inset-x-0 bottom-0 bg-white border-t border-orange-100 z-50">
-            <div className="flex justify-around py-2">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t-2 border-orange-200 shadow-2xl z-50">
+            <div className="flex justify-around items-center py-3">
                 {navItems.map((item) => (
                     <button
                         key={item.id}
-                        onClick={() => {
-                            if (item.href) navigate(item.href);
-                            else if (item.id !== "home") setActiveSection(item.id);
-                        }}
-                        className={`flex flex-col items-center p-2 rounded-lg transition ${activeSection === item.id ? "text-orange-600" : "text-orange-400"
+                        onClick={() => item.href ? navigate(item.href) : setActiveSection(item.id)}
+                        className={`flex flex-col items-center p-3 rounded-xl transition-all ${activeSection === item.id
+                                ? "text-orange-600 bg-orange-100 scale-110"
+                                : "text-orange-500"
                             }`}
                     >
                         {item.icon}
@@ -247,7 +519,7 @@ const Profile = () => {
                 ))}
                 <button
                     onClick={handleLogout}
-                    className="flex flex-col items-center p-2 text-red-500"
+                    className="flex flex-col items-center p-3 text-red-500"
                 >
                     <LogOut size={20} />
                     <span className="text-xs mt-1">Logout</span>
@@ -257,130 +529,88 @@ const Profile = () => {
     );
 
     return (
-        <div className="flex h-screen flex-col bg-gradient-to-br from-orange-50 via-white to-orange-50">
-            {/* Sticky Header */}
+        <div className="min-h-screen bg-gradient-to-br from-orange-50 via-white to-orange-50 flex flex-col">
+            {/* Header */}
             <motion.header
-                initial={{ y: -30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 120 }}
-                className="sticky top-0 z-40 bg-white/80 backdrop-blur-sm shadow-sm py-4 text-center"
+                initial={{ y: -50 }}
+                animate={{ y: 0 }}
+                className="bg-white/90 backdrop-blur-md shadow-md py-5 text-center border-b border-orange-100 sticky top-0 z-40"
             >
-                <h1 className="text-2xl lg:text-3xl font-bold text-orange-800">My Account</h1>
-                <p className="text-sm text-orange-600">Manage everything in one place</p>
+                <h1 className="text-3xl font-bold text-orange-800">My Account</h1>
+                <p className="text-orange-600">Welcome back, {user?.name?.split(" ")[0]}!</p>
             </motion.header>
 
             <div className="flex flex-1 overflow-hidden">
-                {/* Desktop Sidebar */}
                 <Sidebar />
 
                 {/* Main Content */}
-                <main className="flex-1 overflow-y-auto pb-20 lg:pb-0 p-4 lg:p-8">
-                    <motion.div
-                        variants={container}
-                        initial="hidden"
-                        animate="visible"
-                        className="mx-auto max-w-4xl"
-                    >
+                <main className="flex-1 overflow-y-auto p-6 pb-24 lg:pb-8">
+                    <div className="max-w-5xl mx-auto">
                         <AnimatePresence mode="wait">
-                            {/* PROFILE */}
                             {activeSection === "profile" && (
-                                <motion.section
-                                    key="profile"
-                                    initial={{ opacity: 0, x: -50 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 50 }}
-                                    className="p-6 bg-white rounded-xl shadow-xl border border-orange-100"
-                                >
-                                    <ProfileSettings />
-                                </motion.section>
+                                <motion.div key="profile" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                    <div className="bg-white rounded-2xl shadow-xl border border-orange-200 p-8">
+                                        <ProfileSettings />
+                                    </div>
+                                </motion.div>
                             )}
 
-                            {/* ORDERS */}
                             {activeSection === "orders" && (
-                                <motion.section
-                                    key="orders"
-                                    initial={{ opacity: 0, x: -50 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 50 }}
-                                    className="p-6 bg-white rounded-xl shadow-xl border border-orange-100"
-                                >
-                                    <OrdersSection />
-                                </motion.section>
+                                <motion.div key="orders" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                    <div className="bg-white rounded-2xl shadow-xl border border-orange-200 p-8">
+                                        <OrdersSection />
+                                    </div>
+                                </motion.div>
                             )}
 
-                            {/* ADMIN PANEL */}
+                            {activeSection === "add-product" && isAdmin && (
+                                <motion.div key="add-product" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                    <div className="bg-white rounded-2xl shadow-xl border border-orange-200 p-8">
+                                        <AddProductSection />
+                                    </div>
+                                </motion.div>
+                            )}
+
                             {activeSection === "admin" && isAdmin && (
-                                <motion.section
-                                    key="admin"
-                                    initial={{ opacity: 0, x: -50 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    exit={{ opacity: 0, x: 50 }}
-                                    className="p-6 bg-white rounded-xl shadow-xl border border-orange-100"
-                                >
-                                    <AdminDashboard />
-                                </motion.section>
+                                <motion.div key="admin" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                                    <div className="bg-white rounded-2xl shadow-xl border border-orange-200 p-8">
+                                        <AdminDashboard />
+                                    </div>
+                                </motion.div>
                             )}
                         </AnimatePresence>
-                    </motion.div>
+                    </div>
                 </main>
             </div>
 
-            {/* Mobile Bottom Tabs */}
             <MobileTabs />
         </div>
     );
 };
 
-/* ---------- Helper Components ---------- */
-const UserAvatar = ({ user, size = "h-24 w-24", textSize = "text-3xl" }) => {
-    if (user?.avatar?.url)
-        return (
-            <img
-                src={user.avatar.url}
-                alt={user.name}
-                className={`${size} rounded-full object-cover shadow-lg ring-4 ring-orange-100`}
-            />
-        );
-
+// Helper Components
+const UserAvatar = ({ user }) => {
     const letter = user?.name?.charAt(0).toUpperCase() || "U";
-    const colors = {
-        A: "bg-orange-500", B: "bg-amber-500", C: "bg-yellow-500", D: "bg-orange-600",
-        E: "bg-red-500", F: "bg-pink-500", G: "bg-rose-500", H: "bg-orange-400",
-        I: "bg-amber-600", J: "bg-yellow-600", K: "bg-orange-700", L: "bg-amber-700",
-        M: "bg-yellow-700", N: "bg-orange-300", O: "bg-amber-300", P: "bg-yellow-300",
-        Q: "bg-red-400", R: "bg-pink-400", S: "bg-rose-400", T: "bg-orange-200",
-        U: "bg-amber-200", V: "bg-yellow-200", W: "bg-orange-100", X: "bg-amber-100",
-        Y: "bg-yellow-100", Z: "bg-gray-400",
-    };
-    const bg = colors[letter] || "bg-orange-500";
-
     return (
-        <div
-            className={`${size} ${bg} rounded-full flex items-center justify-center text-white font-bold ${textSize} shadow-lg ring-4 ring-orange-50`}
-        >
+        <div className="w-24 h-24 mx-auto rounded-full bg-gradient-to-br from-orange-400 to-orange-600 flex items-center justify-center text-white text-4xl font-bold shadow-xl ring-4 ring-orange-200">
             {letter}
         </div>
     );
 };
 
-const NavItem = ({ icon, label, active, onClick }) => {
-    const base =
-        "flex w-full items-center gap-3 rounded-lg px-4 py-3 transition font-medium text-sm lg:text-base";
-    const cls = active
-        ? `${base} bg-orange-100 text-orange-700 border border-orange-200`
-        : `${base} text-orange-700 hover:bg-orange-50 border border-transparent`;
-
-    return (
-        <motion.div
-            whileHover={{ x: 6 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={onClick}
-            className={`${cls} cursor-pointer`}
-        >
-            {icon}
-            <span>{label}</span>
-        </motion.div>
-    );
-};
+const NavItem = ({ icon, label, active, onClick }) => (
+    <motion.button
+        whileHover={{ x: 8 }}
+        whileTap={{ scale: 0.98 }}
+        onClick={onClick}
+        className={`w-full flex items-center gap-4 px-5 py-4 rounded-xl text-left font-medium transition-all ${active
+                ? "bg-gradient-to-r from-orange-100 to-orange-50 text-orange-700 border-2 border-orange-300 shadow-md"
+                : "text-orange-700 hover:bg-orange-50"
+            }`}
+    >
+        {icon}
+        <span>{label}</span>
+    </motion.button>
+);
 
 export default Profile;
